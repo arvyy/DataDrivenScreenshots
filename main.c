@@ -4,19 +4,20 @@
 #include <libguile.h>
 #include <GL/gl.h>
 
-#define GUILE_AUTO_COMPILE 0
+char* script;
+int width;
+int height;
 
 #define MAX_SHADER 20
-#define MAX_RENDER_TEXTURE 20
-#define MAX_TEXTURES 100
-
 Shader shaders[MAX_SHADER];
 int shaderLength = 0;
 
+#define MAX_RENDER_TEXTURE 20
 RenderTexture2D renderTextures[MAX_RENDER_TEXTURE];
 int renderTexturesLength = 0;
 int renderTexturesInitCount = 0;
 
+#define MAX_TEXTURES 100
 Texture textures[MAX_TEXTURES];
 int texturesLength = 0;
 
@@ -48,7 +49,7 @@ push_pp_texture()
     if (renderTexturesInitCount > renderTexturesLength) {
         target = renderTextures[renderTexturesLength];
     } else {
-        target = LoadRenderTexture(800, 450);
+        target = LoadRenderTexture(width, height);
         renderTexturesInitCount++;
     }
     BeginTextureMode(target);
@@ -87,19 +88,10 @@ pp_chain_next(SCM shader_id)
     BeginTextureMode(ppTextures[ppImgIndex]);
     int shader_index = scm_to_int(shader_id);
     Shader shader = shader_index != -1? shaders[shader_index] : GetShaderDefault() ;
-    //BeginShaderMode(shader);
     ClearBackground(BLANK);
-    /*
-    DrawTextureRec(
-            src.texture, 
-            (Rectangle){ 0, 0, src.texture.width, -src.texture.height }, 
-            (Vector2) { 0, 0 }, 
-            WHITE);
-            */
     planeModel.materials[0].shader = shader;
     draw_plane(0, 0, src.texture.width, src.texture.height, WHITE, src.texture);
     planeModel.materials[0].shader = GetShaderDefault();
-    //EndShaderMode();
     EndTextureMode();
     lastPPImgIndex = ppImgIndex;
     return SCM_BOOL_T;
@@ -141,7 +133,6 @@ apply_transform(SCM transform)
     m.m9 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 5));
     rlLoadIdentity();
     rlMultMatrixf(MatrixToFloat(MatrixInvert(m)));
-    //rlMultMatrixf(MatrixToFloat(m));
     return SCM_BOOL_T;
 }
 
@@ -244,41 +235,6 @@ draw_rect_scm(SCM x, SCM y, SCM width, SCM height, SCM color_vec, SCM texture_id
     Rectangle srcRec = (Rectangle){ 0, 0, texture.width, texture.height };
     Rectangle destRec = (Rectangle){ pos.x, pos.y, size.x, size.y };
     DrawTexturePro(texture, srcRec, destRec, (Vector2) { 0, 0 }, 0, c);
-    /*
-    //rlPushMatrix();
-    //rlTranslatef(center.x, center.y, 0);
-    //rlScalef(size.x, size.y, 1);
-    //rlRotatef(-90, 1, 0, 0);
-    //DrawPlane((Vector3) {0, 0, 0}, (Vector2) {1, 1}, RED);
-    //rlPopMatrix();
-    rlPushMatrix();
-    Mesh planeMesh = GenMeshPlane(1, 1, 1, 1);
-    Model planeModel = LoadModelFromMesh(planeMesh);
-    Image checked = GenImageChecked(2, 2, 1, 1, RED, GREEN);
-    Texture2D texture = LoadTextureFromImage(checked);
-    UnloadImage(checked);
-    planeModel.materials[0].maps[MAP_DIFFUSE].texture = texture;
-    planeModel.transform = MatrixMultiply(MatrixRotate((Vector3){1, 0, 0}, -0.5*PI), MatrixScale(size.x, size.y, 1));
-    DrawModel(planeModel, (Vector3){ center.x, center.y, -0.1 }, 1, c);
-    UnloadTexture(texture);
-    UnloadModel(planeModel);
-    rlPopMatrix();
-    int t_id;
-    if (scm_is_true(texture_id)){
-        t_id = scm_to_int(texture_id);
-    } else {
-        t_id = -1;
-    }
-    Texture2D texture = t_id == -1? GetTextureDefault() : textures[t_id];
-    draw_plane(
-        scm_to_double(x),
-        scm_to_double(y),
-        scm_to_double(width),
-        scm_to_double(height),
-        c,
-        texture
-    );
-    */
     return SCM_BOOL_T;
 }
 
@@ -314,17 +270,7 @@ void init_chart_base_native_module(void* data)
     scm_c_define_gsubr("total-time", 0, 0, 0, total_time);
     scm_c_define_gsubr("draw-rect*", 6, 0, 0, draw_rect_scm);
     scm_c_define_gsubr("draw-text*", 5, 0, 0, draw_text_scm);
-    /*
-    scm_c_define_gsubr("push-transform", 0, 0, 0, push_transform);
-    scm_c_define_gsubr("pop-transform", 0, 0, 0, pop_transform);
-    scm_c_define_gsubr("transform-identity", 0, 0, 0, transform_identity);
-    scm_c_define_gsubr("transform-translate", 2, 0, 0, transform_translate);
-    scm_c_define_gsubr("transform-scale", 1, 0, 0, transform_scale);
-    scm_c_define_gsubr("transform-rotate", 1, 0, 0, transform_rotate);
-    */
     scm_c_define_gsubr("apply-transform", 1, 0, 0, apply_transform);
-
-
     scm_c_define_gsubr("load-shader", 2, 0, 0, load_shader);
     scm_c_define_gsubr("load-texture", 1, 0, 0, load_texture);
     scm_c_define_gsubr("get-shader-loc", 2, 0, 0, get_shader_loc);
@@ -340,7 +286,6 @@ void init_chart_base_native_module(void* data)
     scm_c_export(
             "frame-time", "total-time", 
             "draw-rect*", "draw-text*", 
-            //"push-transform", "pop-transform", "transform-identity", "transform-translate", "transform-scale", "transform-rotate",
             "apply-transform",
             "load-shader", "get-shader-loc", "set-shader-value", "set-shader-value-texture",
             "load-texture",
@@ -352,39 +297,131 @@ void init_guile_fn() {
     scm_c_define_module ("chart base native", init_chart_base_native_module, NULL);  
 }
 
+void loadBootstrap() {
+    scm_c_primitive_load("guile/preamble.scm");
+}
+
+void loadScript() {
+    scm_c_primitive_load(script);
+}
+
+void updateProtected(SCM* data, SCM value) {
+    scm_gc_protect_object(value);
+    scm_gc_unprotect_object(*data);
+    *data = value;
+}
+
 void* main2(void* args) {
-    char* schemeFileName = (char*) args;
+    int fps;
+    Color bgColor;
+    int maxFrames;
+    int currentRecFrame;
+    char* outputFolder = NULL;
+    int recording = 0;
+    int paused = 0;
+    int showValue = 0;
+    float speed = 1;
     init_guile_fn();
-    SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(800, 450, "Test");
-    ppTextures[0] = LoadRenderTexture(800, 450);
-    ppTextures[1] = LoadRenderTexture(800, 450);
+    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_HIDDEN);
+    InitWindow(100, 100, "D3");
+    loadBootstrap();
+    loadScript();
+    width = scm_to_int(scm_variable_ref(scm_c_lookup("width")));
+    height = scm_to_int(scm_variable_ref(scm_c_lookup("height")));
+    fps = scm_to_int(scm_variable_ref(scm_c_lookup("fps")));
+    maxFrames = scm_to_int(scm_variable_ref(scm_c_lookup("max-frames")));
+    SetWindowSize(width, height);
+    SetWindowPosition(0, 0);
+    UnhideWindow();
+    SCM bgColor_scm = scm_variable_ref(scm_c_lookup("bg-color"));
+    bgColor = (Color) { 
+        scm_to_int(SCM_SIMPLE_VECTOR_REF(bgColor_scm, 0)),
+        scm_to_int(SCM_SIMPLE_VECTOR_REF(bgColor_scm, 1)),
+        scm_to_int(SCM_SIMPLE_VECTOR_REF(bgColor_scm, 2))
+    };
+    ppTextures[0] = LoadRenderTexture(width, height);
+    ppTextures[1] = LoadRenderTexture(width, height);
     init_plane_model();
 
-    SetTargetFPS(60);
-    scm_c_primitive_load(schemeFileName);
-    SCM update, render, init, data, new_data, key_press;
+    SetTargetFPS(fps);
+    SCM update, render, init, data, new_data, key_press, format, debug_info, stop, output_frame, output_folder;
     update = scm_variable_ref(scm_c_lookup("update"));
     init = scm_variable_ref(scm_c_lookup("init-data"));
     key_press = scm_variable_ref(scm_c_lookup("key-press"));
     render = scm_variable_ref(scm_c_lookup("render"));
+    format = scm_variable_ref(scm_c_lookup("format"));
+    debug_info = scm_variable_ref(scm_c_lookup("debug-info"));
+    stop = scm_variable_ref(scm_c_lookup("stop?"));
+    output_frame = scm_variable_ref(scm_c_lookup("output-frame"));
+    output_folder = scm_variable_ref(scm_c_lookup("output-folder"));
     data = scm_gc_protect_object(scm_call_0(init));
     while (!WindowShouldClose()) {
+        if (recording) {
+            int should_stop = scm_is_true(scm_call_1(stop, data)); 
+            if (should_stop || currentRecFrame > maxFrames) {
+                recording = 0;
+            }
+        }
         int key = GetKeyPressed();
+        /*
         if (key != 0 && key != -1) {
             new_data = scm_call_2(key_press, scm_from_int(key), data);
             scm_gc_protect_object(new_data);
             scm_gc_unprotect_object(data);
             data = new_data;
         }
+        */
+        if (key == KEY_R || key == KEY_R + 32) {
+            loadScript();
+        } else if (key == KEY_SPACE) {
+            paused = !paused;
+        } else if (key == KEY_ZERO) {
+            updateProtected(&data, scm_call_0(init));
+        } else if (key == KEY_Q || key == KEY_Q + 32) {
+            speed = speed < 8? speed * 2 : 8;
+        } else if (key == KEY_A || key == KEY_A + 32) {
+            speed = speed > 0.125? speed / 2 : 0.125;
+        } else if (key == KEY_D || key == KEY_D + 32) {
+            showValue = !showValue;
+        } else if (key == KEY_ENTER){
+            recording = !recording;
+            if (recording) {
+                paused = 0;
+                currentRecFrame = 0;
+                if (outputFolder != NULL) free(outputFolder);
+                outputFolder = scm_to_utf8_stringn(scm_call_1(output_folder, scm_from_locale_string(script)), NULL);
+            }
+        } else {
+            updateProtected(&data, scm_call_2(key_press, scm_from_int(key), data));
+        }
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(bgColor);
         scm_call_1(render, data);
+        if (recording) {
+            char* outputFrame = scm_to_utf8_stringn(scm_call_1(output_frame, scm_from_int(currentRecFrame)), NULL);
+            currentRecFrame++;
+            char* ssName = TextFormat("%s/%s", outputFolder, outputFrame);
+            TakeScreenshot(ssName);
+            free(outputFrame);
+            free(ssName);
+        }
+        if (showValue) {
+            SCM debug_data = scm_call_1(debug_info, data);
+            SCM scm_text = scm_call_3(format, SCM_BOOL_F, scm_from_locale_string("~a"), debug_data);
+            char* text = scm_to_utf8_stringn(scm_text, NULL);
+            DrawText(text, 20, 20, 10, BLACK);
+            free(text);
+        }
         EndDrawing();
-        new_data = scm_call_2(update, scm_from_double(GetFrameTime()), data);
-        scm_gc_protect_object(new_data);
-        scm_gc_unprotect_object(data);
-        data = new_data;
+        if (!paused) {
+            /*
+            new_data = scm_call_2(update, scm_from_double(GetFrameTime()), data);
+            scm_gc_protect_object(new_data);
+            scm_gc_unprotect_object(data);
+            data = new_data;
+            */
+            updateProtected(&data, scm_call_2(update, scm_from_double(GetFrameTime() * speed), data));
+        }
     }
     return 0;
 }
@@ -394,6 +431,7 @@ int main(int argc, char* args[]) {
         printf("Expected first parameter to be scheme script file name. Exiting\n");
         return 1;
     }
-    scm_with_guile(main2, args[1]);
+    script = args[1];
+    scm_with_guile(main2, NULL);
     return 0;
 }

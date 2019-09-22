@@ -1,15 +1,3 @@
-(add-to-load-path (string-append
-                    (dirname (current-filename))
-                    "/guile"))
-
-(use-modules
-  (srfi srfi-42)
-  (ice-9 format)
-  (chart base)
-  (chart sequence)
-  (chart stdshader)
-  (chart interp))
-
 (define item
   (cnt #:transform (combine (translate 20 100) (scale 2 2))
        #:id 'foo
@@ -71,8 +59,8 @@
 (define (update frame-time data)
   (state-wrap-update data frame-time))
 
-(define (key-press key data)
-  (state-wrap-next data #t))
-
 (define (render data)
   (draw (apply-data item (state-wrap-get data) overrides)))
+
+(define (debug-info data)
+  (state-wrap-get data))
