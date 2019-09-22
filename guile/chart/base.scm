@@ -70,23 +70,23 @@
 !#
 
 (define-record-type+fact <container> cnt-fact
-  (make-cnt id transform shader post-processing items)
+  (make-cnt id transform post-processing items)
   cnt?
   (id cnt-id)
   (transform cnt-transform)
-  (shader cnt-shader)
   (post-processing cnt-post-processing)
   (items cnt-items))
 
 (define-record-type+fact+bind* <rect> rect-fact bind*-rect
-  (make-rect id x y width height color)
+  (make-rect id x y width height color texture)
   rect?
   (id rect-id)
   (x rect-x)
   (y rect-y)
   (width rect-width)
   (height rect-height)
-  (color rect-color))
+  (color rect-color)
+  (texture rect-texture))
 
 (define-record-type+fact+bind* <text> text-fact bind*-text
   (make-text id text x y font-size color)
@@ -124,18 +124,18 @@
   (vector (/ 1. xk) 0. 0.
           0. (/ 1. yk) 0.))
 
-(define rect (rect-fact (make-rect #f 0 0 0 0 (make-color 200 100 100 255))))
-(define rect-o (rect-fact (make-rect #f #f #f #f #f #f)))
+(define rect (rect-fact (make-rect #f 0 0 0 0 (make-color 200 100 100 255) #f)))
+(define rect-o (rect-fact (make-rect #f #f #f #f #f #f #f)))
 
 (define text (text-fact (make-text #f "" 0 0 12 (make-color 10 10 10 255))))
 (define text-o (text-fact (make-text #f #f #f #f #f #f)))
 
-(define cnt (cnt-fact (make-cnt #f (translate 0. 0.) #f #f '())))
-(define cnt-o (cnt-fact (make-cnt #f #f #f #f #f)))
+(define cnt (cnt-fact (make-cnt #f (translate 0. 0.) #f '())))
+(define cnt-o (cnt-fact (make-cnt #f #f #f #f)))
 
-(define (draw-rect x y w h c)
+(define (draw-rect x y w h c texture)
   (match c
-         (($ <color> r g b a) (draw-rect* x y w h (vector r g b a)))))
+         (($ <color> r g b a) (draw-rect* x y w h (vector r g b a) texture))))
 
 (define (draw-text text x y font-size c)
   (match c
@@ -239,7 +239,7 @@
 (define (bind*-cnt cnt-def datum cnt-branch overrides)
   (define id (cnt-id cnt-def))
   (define new-cnt-branch (append cnt-branch (list id)))
-  (define getters (list cnt-transform cnt-shader cnt-post-processing))
+  (define getters (list cnt-transform cnt-post-processing))
   (define fields (fv*/overrides cnt-def cnt? getters datum new-cnt-branch overrides))
   (define items (cnt-items cnt-def))
   (define items* 
@@ -254,10 +254,7 @@
               datums)))
       (else (error (format #f "Expected list or procedure; got: ~a" items)))))
   (match fields
-    ((t s pp) (make-cnt id t 
-                        (if s 
-                            (bind*-shader s datum) 
-                            #f) 
+    ((t pp) (make-cnt id t 
                         (if pp
                             (map (lambda(shd) 
                                    (bind*-shader 
@@ -269,24 +266,18 @@
 
 (define (draw* item transform-lst)
   (match item
-         (($ <rect> id x y width height color) (draw-rect x y width height color))
+         (($ <rect> id x y width height color texture) (draw-rect x y width height color texture))
          (($ <text> id text x y font-size color) (draw-text text x y font-size color))
-         (($ <container> id transform shader pp items)
+         (($ <container> id transform pp items)
           (begin
             (define new-transform (combine transform-lst transform ))
             (apply-transform new-transform)
             (when pp
               (push-pp-texture))
-            (when shader 
-              (begin 
-                (begin-shader-mode (shader-id shader))
-                (for-each (lambda(uniform) (set-shader-value (shader-id shader) (car uniform) (cdr uniform))) (shader-uniforms shader))))
             (for-each (lambda (item) 
                         (apply-transform new-transform)
                         (draw* item new-transform)) 
                       items)
-            (when shader 
-              (end-shader-mode))
             (when pp
               (let ((pp-list (if (list? pp) pp (list pp))))
                 (when (null? pp-list)
@@ -295,9 +286,11 @@
                 (for-each 
                   (lambda(pp)
                     (for-each (lambda(uniform) 
-                                (set-shader-value (shader-id pp) 
-                                                  (car uniform) 
-                                                  (cdr uniform)))
+                                (define id (shader-id pp))
+                                (define val (cdr uniform))
+                                (match (car uniform)
+                                  (('vec . loc) (set-shader-value id loc val))
+                                  (('texture . loc) (set-shader-value-texture id loc val))))
                               (shader-uniforms pp))
                     (pp-chain-next (shader-id pp)))
                   pp-list)
@@ -357,4 +350,4 @@
 (define override cons)
 
 (export apply-data bind* pattern draw rect rect-o text text-o cnt cnt-o shader color combine rotate translate scale calc cnt-items-tpl cnt-items-transf override)
-(re-export load-shader get-shader-loc set-shader-value)
+(re-export load-texture load-shader get-shader-loc load-texture)

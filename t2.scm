@@ -11,7 +11,7 @@
   (chart interp))
 
 (define item
-  (cnt #:transform (combine (translate 20 100) (scale 3 3))
+  (cnt #:transform (combine (translate 20 100) (scale 2 2))
        #:id 'foo
        #:items (cnt-items-tpl 
                  (cnt 
