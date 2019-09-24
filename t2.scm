@@ -12,7 +12,7 @@
                    #:transform (calc ((x . a)) (combine (translate (inexact->exact (truncate (* 30 x))) 0) (rotate x)))
                    #:items (list
                              (text #:text (calc (d) (number->string (inexact->exact (car d))))
-                                   #:font-size 20
+                                   #:font-size 1
                                    ;#:x (calc (d) (inexact->exact (truncate (* 30 (car d)))))
                                    ;#:y (calc (d) (inexact->exact (truncate (* 10 (cdr d)))))
                                    )
@@ -64,3 +64,6 @@
 
 (define (debug-info data)
   (state-wrap-get data))
+
+(define (stop? data)
+  (state-wrap-empty? data))

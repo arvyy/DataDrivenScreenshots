@@ -51,24 +51,6 @@
              (define _id+fields (cons _id fields))
              (apply constr _id+fields))))))))
 
-#!
-(define-record-type <translate>
-  (make-translate x y)
-  translate?
-  (x translate-x)
-  (y translate-y))
-
-(define-record-type <rotate>
-  (make-rotate rad)
-  rotate?
-  (rad rotate-rad))
-
-(define-record-type <scale>
-  (make-scale mult)
-  scale?
-  (mult scale-mult))
-!#
-
 (define-record-type+fact <container> cnt-fact
   (make-cnt id transform post-processing items)
   cnt?
@@ -98,6 +80,15 @@
   (font-size text-font-size)
   (color text-color))
 
+(define-record-type+fact+bind* <triangle> triangle-fact bind*-triangle
+  (make-triangle id a b c color)
+  triangle?
+  (id triangle-id)
+  (a triangle-a)
+  (b triangle-b)
+  (c triangle-c)
+  (color triangle-color))
+
 (define-record-type <color>
   (make-color r g b a)
   color?
@@ -121,8 +112,8 @@
           0. 1. y))
 
 (define (scale xk yk)
-  (vector (/ 1. xk) 0. 0.
-          0. (/ 1. yk) 0.))
+  (vector xk 0. 0.
+          0. yk 0.))
 
 (define rect (rect-fact (make-rect #f 0 0 0 0 (make-color 200 100 100 255) #f)))
 (define rect-o (rect-fact (make-rect #f #f #f #f #f #f #f)))

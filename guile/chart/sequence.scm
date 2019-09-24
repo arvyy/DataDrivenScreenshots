@@ -61,7 +61,8 @@
                     (dur (cdr (car queue)))
                     (new-e (+ e delta)))
                 (if (> new-e dur)
-                    (make-wrap new-state (cdr queue) (- new-e dur) tr)
+                    ; call recursively self, since delta might be bigger than next state's duration
+                    (state-wrap-update (make-wrap new-state (cdr queue) 0 tr) (- new-e dur))
                     (make-wrap state queue new-e tr))))))))
 
 (define (state-wrap-next wrap smooth?)
@@ -79,4 +80,7 @@
         ((null? queue) state)
         (else (tr state (car (car queue)) (/ e (cdr (car queue)))))))))
 
-(export #! make-seq-renderer !# state-wrap state-wrap-enqueue state-wrap-update state-wrap-next state-wrap-get)
+(define (state-wrap-empty? wrap)
+  (null? (wrap-queue wrap)))
+
+(export state-wrap state-wrap-enqueue state-wrap-update state-wrap-next state-wrap-get state-wrap-empty?)

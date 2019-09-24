@@ -26,6 +26,8 @@ RenderTexture2D ppTextures[2];
 
 Model planeModel;
 
+Matrix cntTransform;
+
 void init_plane_model()
 {
     Mesh planeMesh = GenMeshPlane(1, 1, 1, 1);
@@ -87,7 +89,11 @@ pp_chain_next(SCM shader_id)
     int ppImgIndex = (lastPPImgIndex + 1) % 2;
     BeginTextureMode(ppTextures[ppImgIndex]);
     int shader_index = scm_to_int(shader_id);
-    Shader shader = shader_index != -1? shaders[shader_index] : GetShaderDefault() ;
+    Shader shader = shader_index != -1? shaders[shader_index] : GetShaderDefault();
+    int cntTransformLoc = GetShaderLocation(shader, "cntTransform");
+    if (cntTransformLoc != -1) {
+        SetShaderValueMatrix(shader, cntTransformLoc, cntTransform);
+    }
     ClearBackground(BLANK);
     planeModel.materials[0].shader = shader;
     draw_plane(0, 0, src.texture.width, src.texture.height, WHITE, src.texture);
@@ -120,19 +126,26 @@ pop_pp_texture()
     return SCM_BOOL_T;
 }
 
+Matrix scm_to_matrix(SCM transform)
+{
+    Matrix m = MatrixIdentity();
+    m.m0 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 0));
+    m.m4 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 1));
+    m.m12 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 2));
+    m.m1 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 3));
+    m.m5 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 4));
+    m.m13 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 5));
+    return m;
+}
+
 SCM
 apply_transform(SCM transform)
 {
     rlglDraw();
-    Matrix m = MatrixIdentity();
-    m.m0 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 0));
-    m.m4 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 1));
-    m.m8 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 2));
-    m.m1 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 3));
-    m.m5 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 4));
-    m.m9 = scm_to_double(SCM_SIMPLE_VECTOR_REF(transform, 5));
     rlLoadIdentity();
-    rlMultMatrixf(MatrixToFloat(MatrixInvert(m)));
+    Matrix m = scm_to_matrix(transform);
+    cntTransform = MatrixInvert(m);
+    rlMultMatrixf(MatrixToFloat(m));
     return SCM_BOOL_T;
 }
 
@@ -316,10 +329,12 @@ void* main2(void* args) {
     Color bgColor;
     int maxFrames;
     int currentRecFrame;
+    int loop;
     char* outputFolder = NULL;
+    float elapsedTime = 0;
     int recording = 0;
     int paused = 0;
-    int showValue = 0;
+    int showValue = 1;
     float speed = 1;
     init_guile_fn();
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_HIDDEN);
@@ -330,6 +345,8 @@ void* main2(void* args) {
     height = scm_to_int(scm_variable_ref(scm_c_lookup("height")));
     fps = scm_to_int(scm_variable_ref(scm_c_lookup("fps")));
     maxFrames = scm_to_int(scm_variable_ref(scm_c_lookup("max-frames")));
+    loop = scm_is_true(scm_variable_ref(scm_c_lookup("loop?")));
+    outputFolder = scm_to_utf8_stringn(scm_variable_ref(scm_c_lookup("output-folder")), NULL);
     SetWindowSize(width, height);
     SetWindowPosition(0, 0);
     UnhideWindow();
@@ -342,9 +359,10 @@ void* main2(void* args) {
     ppTextures[0] = LoadRenderTexture(width, height);
     ppTextures[1] = LoadRenderTexture(width, height);
     init_plane_model();
+    cntTransform = MatrixIdentity();
 
     SetTargetFPS(fps);
-    SCM update, render, init, data, new_data, key_press, format, debug_info, stop, output_frame, output_folder;
+    SCM update, render, init, data, new_data, key_press, format, debug_info, stop, output_frame;
     update = scm_variable_ref(scm_c_lookup("update"));
     init = scm_variable_ref(scm_c_lookup("init-data"));
     key_press = scm_variable_ref(scm_c_lookup("key-press"));
@@ -353,43 +371,46 @@ void* main2(void* args) {
     debug_info = scm_variable_ref(scm_c_lookup("debug-info"));
     stop = scm_variable_ref(scm_c_lookup("stop?"));
     output_frame = scm_variable_ref(scm_c_lookup("output-frame"));
-    output_folder = scm_variable_ref(scm_c_lookup("output-folder"));
     data = scm_gc_protect_object(scm_call_0(init));
     while (!WindowShouldClose()) {
+        int should_stop = scm_is_true(scm_call_1(stop, data)); 
         if (recording) {
-            int should_stop = scm_is_true(scm_call_1(stop, data)); 
             if (should_stop || currentRecFrame > maxFrames) {
                 recording = 0;
             }
+        } else if (should_stop && loop) {
+            updateProtected(&data, scm_call_0(init));
+            elapsedTime = 0;
         }
         int key = GetKeyPressed();
-        /*
-        if (key != 0 && key != -1) {
-            new_data = scm_call_2(key_press, scm_from_int(key), data);
-            scm_gc_protect_object(new_data);
-            scm_gc_unprotect_object(data);
-            data = new_data;
-        }
-        */
         if (key == KEY_R || key == KEY_R + 32) {
             loadScript();
         } else if (key == KEY_SPACE) {
             paused = !paused;
         } else if (key == KEY_ZERO) {
             updateProtected(&data, scm_call_0(init));
+            elapsedTime = 0;
+        } else if (key == KEY_W || key == KEY_W + 32) {
+            elapsedTime += 1;
+            updateProtected(&data, scm_call_0(init));
+            updateProtected(&data, scm_call_2(update, scm_from_double(elapsedTime), data));
+        } else if (key == KEY_S || key == KEY_S + 32) {
+            elapsedTime -= 1;
+            if (elapsedTime < 0)
+                elapsedTime = 0;
+            updateProtected(&data, scm_call_0(init));
+            updateProtected(&data, scm_call_2(update, scm_from_double(elapsedTime), data));
         } else if (key == KEY_Q || key == KEY_Q + 32) {
             speed = speed < 8? speed * 2 : 8;
         } else if (key == KEY_A || key == KEY_A + 32) {
             speed = speed > 0.125? speed / 2 : 0.125;
         } else if (key == KEY_D || key == KEY_D + 32) {
             showValue = !showValue;
-        } else if (key == KEY_ENTER){
+        } else if (key == KEY_G || key == KEY_G + 32){
             recording = !recording;
             if (recording) {
                 paused = 0;
                 currentRecFrame = 0;
-                if (outputFolder != NULL) free(outputFolder);
-                outputFolder = scm_to_utf8_stringn(scm_call_1(output_folder, scm_from_locale_string(script)), NULL);
             }
         } else {
             updateProtected(&data, scm_call_2(key_press, scm_from_int(key), data));
@@ -398,29 +419,33 @@ void* main2(void* args) {
         ClearBackground(bgColor);
         scm_call_1(render, data);
         if (recording) {
-            char* outputFrame = scm_to_utf8_stringn(scm_call_1(output_frame, scm_from_int(currentRecFrame)), NULL);
+            EndDrawing();
+            char* outputFrame = scm_to_utf8_stringn(scm_call_2(output_frame, scm_from_locale_string(script), scm_from_int(currentRecFrame)), NULL);
             currentRecFrame++;
-            char* ssName = TextFormat("%s/%s", outputFolder, outputFrame);
+            const char* ssName = TextFormat("%s/%s", outputFolder, outputFrame);
             TakeScreenshot(ssName);
             free(outputFrame);
-            free(ssName);
+            BeginDrawing();
+            //free(ssName);
         }
-        if (showValue) {
+        if (showValue && !recording) {
+            rlglDraw();
+            rlLoadIdentity();
             SCM debug_data = scm_call_1(debug_info, data);
             SCM scm_text = scm_call_3(format, SCM_BOOL_F, scm_from_locale_string("~a"), debug_data);
             char* text = scm_to_utf8_stringn(scm_text, NULL);
             DrawText(text, 20, 20, 10, BLACK);
+            DrawText(TextFormat("Speed: %fx", speed), 20, 30, 10, BLACK);
+            if (paused) {
+                DrawText("Paused", 20, 40, 10, BLACK);
+            }
             free(text);
         }
         EndDrawing();
         if (!paused) {
-            /*
-            new_data = scm_call_2(update, scm_from_double(GetFrameTime()), data);
-            scm_gc_protect_object(new_data);
-            scm_gc_unprotect_object(data);
-            data = new_data;
-            */
-            updateProtected(&data, scm_call_2(update, scm_from_double(GetFrameTime() * speed), data));
+            float frameTime = !recording? (GetFrameTime() * speed) : (1.0 / fps);
+            elapsedTime += frameTime;
+            updateProtected(&data, scm_call_2(update, scm_from_double(frameTime), data));
         }
     }
     return 0;

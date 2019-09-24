@@ -13,20 +13,21 @@
 (define height 450)
 (define bg-color #(250 250 250))
 (define fps 60)
+(define loop? #t)
 
-(define (output-folder script-file)
-  (define now (current-date))
-  (define name (substring script-file 0 (string-rindex script-file ".")))
-  (format #f "~a_~a-~a-~a" 
-          name 
-          (date-year now)
-          (date-month now)
-          (date-day now)))
+(define output-folder  "./export")
 
 (define max-frames 1000)
 
-(define (output-frame i)
-  (format #f "frame-~a.png" i))
+(define (output-frame script-file i)
+  (define now (current-date))
+  (define name (substring script-file 0 (string-rindex script-file #\.)))
+  (format #f "~a_~a-~a-~a_frame-~a.png" 
+          name 
+          (date-year now)
+          (date-month now)
+          (date-day now)
+          (string-pad (number->string i) 5 #\0)))
 
 (define (init-data) 
   0)
