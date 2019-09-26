@@ -8,25 +8,18 @@ char* script;
 int width;
 int height;
 
-#define MAX_SHADER 20
-Shader shaders[MAX_SHADER];
-int shaderLength = 0;
-
 #define MAX_RENDER_TEXTURE 20
 RenderTexture2D renderTextures[MAX_RENDER_TEXTURE];
 int renderTexturesLength = 0;
 int renderTexturesInitCount = 0;
 
-#define MAX_TEXTURES 100
-Texture textures[MAX_TEXTURES];
-int texturesLength = 0;
-
 int lastPPImgIndex = 0;
 RenderTexture2D ppTextures[2];
 
+RenderTexture2D *draw_to_texture = NULL;
+
 Model planeModel;
 
-Matrix cntTransform;
 
 void init_plane_model()
 {
@@ -88,12 +81,11 @@ pp_chain_next(SCM shader_id)
     RenderTexture2D src = ppTextures[lastPPImgIndex];
     int ppImgIndex = (lastPPImgIndex + 1) % 2;
     BeginTextureMode(ppTextures[ppImgIndex]);
-    int shader_index = scm_to_int(shader_id);
-    Shader shader = shader_index != -1? shaders[shader_index] : GetShaderDefault();
-    int cntTransformLoc = GetShaderLocation(shader, "cntTransform");
-    if (cntTransformLoc != -1) {
-        SetShaderValueMatrix(shader, cntTransformLoc, cntTransform);
-    }
+    Shader* shader_ptr = NULL;
+    if (scm_is_true(shader_id)){
+        shader_ptr = scm_to_pointer(shader_id);
+    } 
+    Shader shader = shader_ptr != NULL? *shader_ptr : GetShaderDefault();
     ClearBackground(BLANK);
     planeModel.materials[0].shader = shader;
     draw_plane(0, 0, src.texture.width, src.texture.height, WHITE, src.texture);
@@ -109,13 +101,15 @@ pop_pp_texture()
     if (renderTexturesLength <= 0)
         return SCM_BOOL_T;
     if (lastPPImgIndex == 1) {
-        pp_chain_next(scm_from_int(-1));
+        pp_chain_next(SCM_BOOL_F);
         return pop_pp_texture();
     }
     RenderTexture2D target = ppTextures[lastPPImgIndex];
     renderTexturesLength--;
     if (renderTexturesLength > 0) {
         BeginTextureMode(renderTextures[renderTexturesLength - 1]);
+    } else if (draw_to_texture != NULL) {
+        BeginTextureMode(*draw_to_texture);
     }
     EndBlendMode();
     DrawTextureRec(
@@ -144,19 +138,59 @@ apply_transform(SCM transform)
     rlglDraw();
     rlLoadIdentity();
     Matrix m = scm_to_matrix(transform);
-    cntTransform = MatrixInvert(m);
     rlMultMatrixf(MatrixToFloat(m));
     return SCM_BOOL_T;
+}
+
+SCM
+load_font(SCM fontFile)
+{
+    char* file = scm_to_utf8_stringn(fontFile, NULL);
+    Font *f;
+    f = malloc(sizeof(Font));
+    *f = LoadFont(file);
+    free(file);
+    return scm_from_pointer(f, NULL);
 }
 
 SCM
 load_texture(SCM textureFile)
 {
     char* file = scm_to_utf8_stringn(textureFile, NULL);
-    Texture t = LoadTexture(file);
+    Texture *t;
+    t = malloc(sizeof(Texture));
+    *t = LoadTexture(file);
     free(file);
-    textures[texturesLength] = t;
-    return scm_from_int(texturesLength++);
+    return scm_from_pointer(t, NULL);
+}
+
+SCM
+create_render_texture(SCM width, SCM height)
+{
+    RenderTexture2D *t = malloc(sizeof(RenderTexture2D));
+    *t = LoadRenderTexture(scm_to_int(width), scm_to_int(height));
+    return scm_from_pointer(t, NULL);
+}
+
+SCM
+render_texture_to_texture(SCM texture)
+{
+    RenderTexture2D *t  = scm_to_pointer(texture);
+    return scm_from_pointer(&(t->texture), NULL);
+}
+
+SCM
+set_draw_target(SCM texture)
+{
+    if (draw_to_texture != NULL)
+        EndTextureMode();
+    if (scm_is_true(texture)) {
+        draw_to_texture = scm_to_pointer(texture);
+        BeginTextureMode(*draw_to_texture);
+    } else {
+        draw_to_texture = NULL;
+    }
+    return SCM_BOOL_T;
 }
 
 SCM
@@ -170,17 +204,18 @@ load_shader(SCM vertexShaderFile, SCM fragmentShaderFile)
     if (scm_is_true(fragmentShaderFile)) {
         fsFile = scm_to_utf8_stringn(fragmentShaderFile, NULL);
     }
-    shaders[shaderLength] = LoadShader(vsFile, fsFile);
+    Shader* shader_ptr = malloc(sizeof (Shader));
+    *shader_ptr = LoadShader(vsFile, fsFile);
     if (vsFile != NULL) free(vsFile);
     if (fsFile != NULL) free(fsFile);
-    SCM new_shader_id = scm_from_int(shaderLength++);
+    SCM new_shader_id = scm_from_pointer(shader_ptr, NULL);
     return new_shader_id;
 }
 
 SCM
 get_shader_loc(SCM shader_id, SCM uniformName)
 {
-    Shader shader = shaders[scm_to_int(shader_id)];
+    Shader shader = *((Shader*)scm_to_pointer(shader_id));
     char* name = scm_to_utf8_stringn(uniformName, NULL);
     int loc = GetShaderLocation(shader, name);
     free(name);
@@ -188,10 +223,26 @@ get_shader_loc(SCM shader_id, SCM uniformName)
 }
 
 SCM
+set_shader_value_matrix(SCM shader_id, SCM loc, SCM matrix)
+{
+    Shader shader = *((Shader*)scm_to_pointer(shader_id));
+    SetShaderValueMatrix(shader, scm_to_int(loc), scm_to_matrix(matrix));
+    return SCM_BOOL_T;
+}
+
+SCM
+set_shader_value_matrix_invert(SCM shader_id, SCM loc, SCM matrix)
+{
+    Shader shader = *((Shader*)scm_to_pointer(shader_id));
+    SetShaderValueMatrix(shader, scm_to_int(loc), MatrixInvert(scm_to_matrix(matrix)));
+    return SCM_BOOL_T;
+}
+
+SCM
 set_shader_value_texture(SCM shader_id, SCM loc, SCM texture_id)
 {
-    Shader *shader = &shaders[scm_to_int(shader_id)];
-    planeModel.materials[0].maps[MAP_EMISSION].texture = textures[scm_to_int(texture_id)];
+    Shader *shader = (Shader*)scm_to_pointer(shader_id);
+    planeModel.materials[0].maps[MAP_EMISSION].texture = *((Texture*)scm_to_pointer(texture_id));
     shader->locs[LOC_MAP_EMISSION] = scm_to_int(loc);
     return SCM_BOOL_T;
 }
@@ -199,7 +250,7 @@ set_shader_value_texture(SCM shader_id, SCM loc, SCM texture_id)
 SCM
 set_shader_value_vec_float(SCM shader_id, SCM loc, SCM vec)
 {
-    Shader shader = shaders[scm_to_int(shader_id)];
+    Shader shader = *((Shader*)scm_to_pointer(shader_id));
     float value[4];
     size_t l = SCM_SIMPLE_VECTOR_LENGTH(vec);
     for (size_t i = 0; i < l; i++) {
@@ -238,13 +289,13 @@ draw_rect_scm(SCM x, SCM y, SCM width, SCM height, SCM color_vec, SCM texture_id
         scm_to_double(x),
         scm_to_double(y)
     };
-    int t_id;
+    Texture* t_id;
     if (scm_is_true(texture_id)){
-        t_id = scm_to_int(texture_id);
+        t_id = scm_to_pointer(texture_id);
     } else {
-        t_id = -1;
+        t_id = NULL;
     }
-    Texture2D texture = t_id == -1? GetTextureDefault() : textures[t_id];
+    Texture2D texture = t_id == NULL? GetTextureDefault() : *t_id;
     Rectangle srcRec = (Rectangle){ 0, 0, texture.width, texture.height };
     Rectangle destRec = (Rectangle){ pos.x, pos.y, size.x, size.y };
     DrawTexturePro(texture, srcRec, destRec, (Vector2) { 0, 0 }, 0, c);
@@ -281,14 +332,20 @@ void init_chart_base_native_module(void* data)
 {
     scm_c_define_gsubr("frame-time", 0, 0, 0, frame_time);
     scm_c_define_gsubr("total-time", 0, 0, 0, total_time);
+    scm_c_define_gsubr("set-draw-target", 1, 0, 0, set_draw_target);
     scm_c_define_gsubr("draw-rect*", 6, 0, 0, draw_rect_scm);
     scm_c_define_gsubr("draw-text*", 5, 0, 0, draw_text_scm);
     scm_c_define_gsubr("apply-transform", 1, 0, 0, apply_transform);
     scm_c_define_gsubr("load-shader", 2, 0, 0, load_shader);
+    scm_c_define_gsubr("load-font", 1, 0, 0, load_font);
     scm_c_define_gsubr("load-texture", 1, 0, 0, load_texture);
+    scm_c_define_gsubr("create-render-texture", 2, 0, 0, create_render_texture);
+    scm_c_define_gsubr("render-texture->texture", 1, 0, 0, render_texture_to_texture);
     scm_c_define_gsubr("get-shader-loc", 2, 0, 0, get_shader_loc);
     scm_c_define_gsubr("set-shader-value", 3, 0, 0, set_shader_value_vec_float);
     scm_c_define_gsubr("set-shader-value-texture", 3, 0, 0, set_shader_value_texture);
+    scm_c_define_gsubr("set-shader-value-matrix", 3, 0, 0, set_shader_value_matrix);
+    scm_c_define_gsubr("set-shader-value-matrix/invert", 3, 0, 0, set_shader_value_matrix_invert);
     scm_c_define_gsubr("push-pp-texture", 0, 0, 0, push_pp_texture);
     scm_c_define_gsubr("pop-pp-texture", 0, 0, 0, pop_pp_texture);
     scm_c_define_gsubr("begin-pp-chain", 0, 0, 0, begin_pp_chain);
@@ -298,10 +355,12 @@ void init_chart_base_native_module(void* data)
 
     scm_c_export(
             "frame-time", "total-time", 
-            "draw-rect*", "draw-text*", 
+            "set-draw-target", "draw-rect*", "draw-text*", 
             "apply-transform",
-            "load-shader", "get-shader-loc", "set-shader-value", "set-shader-value-texture",
-            "load-texture",
+            "load-shader", "get-shader-loc", 
+            "load-font",
+            "set-shader-value", "set-shader-value-texture", "set-shader-value-matrix", "set-shader-value-matrix/invert",
+            "create-render-texture", "render-texture->texture", "load-texture",
             "push-pp-texture", "pop-pp-texture", "begin-pp-chain", "pp-chain-next",
             NULL);
 }
@@ -359,12 +418,12 @@ void* main2(void* args) {
     ppTextures[0] = LoadRenderTexture(width, height);
     ppTextures[1] = LoadRenderTexture(width, height);
     init_plane_model();
-    cntTransform = MatrixIdentity();
 
     SetTargetFPS(fps);
-    SCM update, render, init, data, new_data, key_press, format, debug_info, stop, output_frame;
+    SCM update, render, init, data, new_data, key_press, format, debug_info, stop, output_frame, init_render;
     update = scm_variable_ref(scm_c_lookup("update"));
     init = scm_variable_ref(scm_c_lookup("init-data"));
+    init_render = scm_variable_ref(scm_c_lookup("init-render"));
     key_press = scm_variable_ref(scm_c_lookup("key-press"));
     render = scm_variable_ref(scm_c_lookup("render"));
     format = scm_variable_ref(scm_c_lookup("format"));
@@ -372,6 +431,9 @@ void* main2(void* args) {
     stop = scm_variable_ref(scm_c_lookup("stop?"));
     output_frame = scm_variable_ref(scm_c_lookup("output-frame"));
     data = scm_gc_protect_object(scm_call_0(init));
+    BeginDrawing();
+    scm_call_0(init_render);
+    EndDrawing();
     while (!WindowShouldClose()) {
         int should_stop = scm_is_true(scm_call_1(stop, data)); 
         if (recording) {

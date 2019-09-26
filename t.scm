@@ -16,7 +16,7 @@
 
 (define item
   (cnt
-    #:post-processing (list (shader s `((texture . ,sl) . ,texture)))
+    #:post-processing (list (shader s (list 'texture sl texture)))
     #:items (list (rect #:x 10
         #:y 10
         #:width 700

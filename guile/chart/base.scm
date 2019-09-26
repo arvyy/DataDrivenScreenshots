@@ -261,7 +261,7 @@
          (($ <text> id text x y font-size color) (draw-text text x y font-size color))
          (($ <container> id transform pp items)
           (begin
-            (define new-transform (combine transform-lst transform ))
+            (define new-transform (combine transform transform-lst ))
             (apply-transform new-transform)
             (when pp
               (push-pp-texture))
@@ -278,10 +278,12 @@
                   (lambda(pp)
                     (for-each (lambda(uniform) 
                                 (define id (shader-id pp))
-                                (define val (cdr uniform))
-                                (match (car uniform)
-                                  (('vec . loc) (set-shader-value id loc val))
-                                  (('texture . loc) (set-shader-value-texture id loc val))))
+                                (match uniform
+                                  (('vec loc val) (set-shader-value id loc val))
+                                  (('cnt-transform loc) (set-shader-value-matrix/invert id loc new-transform))
+                                  (('matrix loc val) (set-shader-value-matrix id loc val))
+                                  (('matrix/invert loc val) (set-shader-value-matrix/invert id loc val))
+                                  (('texture loc val) (set-shader-value-texture id loc val))))
                               (shader-uniforms pp))
                     (pp-chain-next (shader-id pp)))
                   pp-list)
@@ -302,8 +304,11 @@
 (define* (apply-data item-def datum #:optional (overrides '()))
   (bind* item-def datum '() overrides))
 
-(define (draw item)
-  (draw* item (translate 0. 0.)))
+(define* (draw item #:optional (texture #f))
+  (set-draw-target texture)
+  (draw* item (translate 0. 0.))
+  (when texture
+    (set-draw-target #f)))
 
 (define* (cnt-items-tpl item-def children-datum-getter 
                        #:optional (child-parent-datum-combiner (lambda(child parent) child)))
@@ -326,19 +331,7 @@
 (define (shader id . uniforms)
   (make-shader id uniforms))
 
-;transformations
-#!
-(define (translate x y)
-  (make-translate x y))
-
-(define (rotate rad)
-  (make-rotate rad))
-
-(define (scale k)
-  (make-scale k))
-!#
-
 (define override cons)
 
-(export apply-data bind* pattern draw rect rect-o text text-o cnt cnt-o shader color combine rotate translate scale calc cnt-items-tpl cnt-items-transf override)
-(re-export load-texture load-shader get-shader-loc load-texture)
+(export apply-data pattern draw rect rect-o text text-o cnt cnt-o shader color combine rotate translate scale calc cnt-items-tpl cnt-items-transf override)
+(re-export load-texture load-shader get-shader-loc load-texture create-render-texture render-texture->texture load-font)

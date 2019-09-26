@@ -1,3 +1,4 @@
+#!
 (define-module (chart axis))
 
 (use-modules
@@ -24,3 +25,4 @@
   axis)
 
 (export make-hor-axis)
+!#

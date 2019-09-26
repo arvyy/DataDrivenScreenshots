@@ -32,6 +32,12 @@
 (define (init-data) 
   0)
 
+(define (init-render) 
+  #f)
+
+(define (render data)
+  #f)
+
 (define (key-press key data)
   data)
 

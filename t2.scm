@@ -1,15 +1,18 @@
+(use-modules
+  (chart effects))
+
 (define item
-  (cnt #:transform (combine (translate 20 100) (scale 2 2))
+  (cnt #:transform (combine (scale 2 2) (translate 20 100) )
        #:id 'foo
        #:items (cnt-items-tpl 
                  (cnt 
                    #:post-processing  (calc ((i . a)) 
                                              (list
                                                (grayscale (/ (- 10 i) 10))
-                                               (blur 800. (/ i 5) #t)
-                                               (blur 450. (/ i 5) #f)
+                                               ;(blur 800. (/ i 5) #t)
+                                               ;(blur 450. (/ i 5) #f)
                                                (opacity a)))
-                   #:transform (calc ((x . a)) (combine (translate (inexact->exact (truncate (* 30 x))) 0) (rotate x)))
+                   #:transform (calc ((x . a)) (combine (rotate x) (translate (inexact->exact (truncate (* 30 x))) 0) ))
                    #:items (list
                              (text #:text (calc (d) (number->string (inexact->exact (car d))))
                                    #:font-size 1
@@ -60,7 +63,8 @@
   (state-wrap-update data frame-time))
 
 (define (render data)
-  (draw (apply-data item (state-wrap-get data) overrides)))
+  (define i (apply-data item (state-wrap-get data) overrides))
+  (draw (effect/shadow i width height 0 20 1)))
 
 (define (debug-info data)
   (state-wrap-get data))

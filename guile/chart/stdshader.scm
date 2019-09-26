@@ -8,13 +8,13 @@
 (define shd/opacity/alpha (get-shader-loc shd/opacity "alpha"))
 
 (define (opacity alpha)
-  (shader shd/opacity `((vec . ,shd/opacity/alpha) . ,(vector alpha))))
+  (shader shd/opacity (list 'vec shd/opacity/alpha (vector alpha))))
 
 (define shd/grayscale (load-shader #f "shader/grayscale.fs"))
 (define shd/grayscale/magnitude (get-shader-loc shd/grayscale "magnitude"))
 (define (grayscale magnitude)
   (shader shd/grayscale
-          `((vec . ,shd/grayscale/magnitude) . ,(vector magnitude))))
+          (list 'vec shd/grayscale/magnitude (vector magnitude))))
 
 (define shd/blur (load-shader #f "shader/blur.fs"))
 (define shd/blur/resolution (get-shader-loc shd/blur "resolution"))
@@ -22,8 +22,8 @@
 (define shd/blur/dir (get-shader-loc shd/blur "dir"))
 (define (blur res radius hor?)
   (shader shd/blur
-          `((vec . ,shd/blur/resolution) . ,(vector res))
-          `((vec . ,shd/blur/radius) . ,(vector radius))
-          `((vec . ,shd/blur/dir) . ,(if hor? (vector 1. 0.) (vector 0. 1.)))))
+          (list 'vec shd/blur/resolution (vector res))
+          (list 'vec shd/blur/radius (vector radius))
+          (list 'vec shd/blur/dir (if hor? (vector 1. 0.) (vector 0. 1.)))))
 
 (export opacity grayscale blur)
