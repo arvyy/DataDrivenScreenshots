@@ -14,4 +14,14 @@
                           #:transform (translate x-offset y-offset))
                      item-def)))
 
-(export effect/shadow)
+(define (effect/outline item-def x y scale*)
+  (cnt #:items 
+       (list
+         (cnt #:items (list item-def)
+               #:post-processing (grayscale 1)
+               #:transform (combine (translate (- x) (- y))
+                                    (scale scale* scale*)
+                                    (translate x y)))
+         item-def)))
+
+(export effect/shadow effect/outline)

@@ -7,7 +7,9 @@
   (chart base)
   (chart sequence)
   (chart stdshader)
-  (chart interp))
+  (chart interp)
+  (chart scale)
+  (chart blend))
 
 (define width 800)
 (define height 450)

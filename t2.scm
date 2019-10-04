@@ -15,7 +15,7 @@
                    #:transform (calc ((x . a)) (combine (rotate x) (translate (inexact->exact (truncate (* 30 x))) 0) ))
                    #:items (list
                              (text #:text (calc (d) (number->string (inexact->exact (car d))))
-                                   #:font-size 1
+                                   #:font-size 10
                                    ;#:x (calc (d) (inexact->exact (truncate (* 30 (car d)))))
                                    ;#:y (calc (d) (inexact->exact (truncate (* 10 (cdr d)))))
                                    )
@@ -26,7 +26,7 @@
 (define overrides
   (list (override (pattern _ ...)
                   (text-o #:color (color 0 255 0 255)
-                          #:font-size 4))
+                          #:font-size 10))
         (override (pattern 'foo _ ...)
                   (text-o #:color (color 255 0 0 255)))))
 

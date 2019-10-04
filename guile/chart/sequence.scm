@@ -7,33 +7,6 @@
   (ice-9 match)
   (chart base))
 
-#!
-(define* (make-seq-renderer item-def transition-fn states #:optional (overrides '()))
-  (define-values (states* last-datum)
-    (let it ((total 0)
-             (rest states)
-             (states '())
-             (last-datum #f))
-      (cond
-        ((null? rest) (values (reverse states) last-datum))
-        (else (let* ((s (car rest))
-                     (new-state (list total (+ total (car s)) (cdr s))))
-                (it (+ total (car s))
-                    (cdr rest)
-                    (cons new-state states)
-                    (cdr s)))))))
-  (define (find-state t)
-    (find-tail (match-lambda ((start end datum) (and (>= t start) (< t end)))) states*))
-  (define (render t)
-    (match (find-state t)
-      (((start1 end1 data1) (_ _ data2) _ ...) 
-       (let ((frac (/ (- t start1) (- end1 start1))))
-         (draw (apply-data item-def (transition-fn data1 data2 frac) overrides))))
-      (_ (draw (apply-data item-def last-datum overrides)))))
-  render)
-
-!#
-
 (define-record-type <wrap>
   ; state (list (dur . state)) ellapsed transition-fn 
   (make-wrap state queue e transition-fn)

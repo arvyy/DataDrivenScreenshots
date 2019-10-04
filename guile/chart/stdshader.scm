@@ -4,6 +4,15 @@
 (use-modules
   (chart base))
 
+(define shd/prem (load-shader #f "shader/premultiply.fs"))
+(define shd/unprem (load-shader #f "shader/unpremultiply.fs"))
+
+(define (to-premultiplied)
+  (shader shd/prem))
+
+(define (from-premultiplied)
+  (shader shd/unprem))
+
 (define shd/opacity (load-shader #f "shader/opacity.fs"))
 (define shd/opacity/alpha (get-shader-loc shd/opacity "alpha"))
 
@@ -26,4 +35,4 @@
           (list 'vec shd/blur/radius (vector radius))
           (list 'vec shd/blur/dir (if hor? (vector 1. 0.) (vector 0. 1.)))))
 
-(export opacity grayscale blur)
+(export opacity grayscale blur to-premultiplied from-premultiplied) 

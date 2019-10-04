@@ -2,6 +2,7 @@
 
 (use-modules
   (chart base)
+  (srfi srfi-43)
   (ice-9 vlist)
   (ice-9 format))
 
@@ -74,7 +75,7 @@
   (+ a (* (- b a) f)))
 
 (define (interp-vec a b f)
-  (vector-map (lambda(a b) (interp a b f)) a b))
+  (vector-map (lambda(index a b) (interp a b f)) a b))
 
 (define (interp-pair a b f)
   (cons (interp (car a) (car b) f)
@@ -87,6 +88,8 @@
       ((and (vector? a) (vector? b)) interp-vec)
       ((and (null? a) (null? b)) (const '()))
       ((and (pair? a) (pair? b)) interp-pair)
+      ((and (string? a) (string? b)) (const b))
+      ((and (symbol? a) (symbol? b)) (const b))
       (else (error (format #f "Can't interpolate ~a and ~a" a b)))))
   (fn a b f))
 
