@@ -5,7 +5,8 @@
               (cnt #:post-processing (to-premultiplied)
                    #:items (list (rect #:width 100
                                        #:height 100
-                                       #:color (color 255 255 0 255))))
+                                       #:fill (color 0 255 0 255)
+                                       #:stroke #f)))
               (cnt #:post-processing (list 
                                        (to-premultiplied)
                                        (blur 800 2 #t))
@@ -14,15 +15,17 @@
                                    #:y 0
                                    #:width 50
                                    #:height 50
-                                   #:color (color 255 0 0 200))
+                                   #:stroke #f
+                                   #:fill (color 255 0 0 255))
 
                              (rect #:x 50
                                    #:y 50
                                    #:width 50
                                    #:height 50
-                                   #:color (color 255 0 0 200))))
+                                   #:stroke #f
+                                   #:fill (color 255 0 0 255))))
               )
-    #:blend blend/alpha))
+    #:blend blend/add))
 
 (define (render data)
   (draw item))
