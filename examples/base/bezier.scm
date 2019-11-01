@@ -1,30 +1,24 @@
 (use-modules
   (dds bezier))
 
-(define control-points '((100 . 100)
-                         (100 . 300)
-                         (200 . 0)
-                         (300 . 300)
-                         (300 . 100)))
-
-(define control-points/x (map car control-points))
-(define control-points/y (map cdr control-points))
-
+(define control-points '((p 100 100)
+                         (c 100 300)
+                         (c 200 0)
+                         (c 300 300)
+                         (p 300 100)
+                         (p 400 100)
+                         #!
+                         (c 300 -100)
+                         (p 450 100)
+                         (p 400 250)
+                         !#
+                         ))
 
 ;create bezier curve
 (define b (bezier #:points control-points
+                  #:fill (color 10 255 10)
                   #:stroke (color 255 10 10)
                   #:stroke-width 4))
 
-(define c (circle #:x (calc (t) (bezier-interp/n control-points/x t))
-                  #:y (calc (t) (bezier-interp/n control-points/y t))
-                  #:radius 10))
-
-(define (init-data) 0)
-(define (update delta data)
-  (+ (* 0.5 delta) data))
-(define (stop? data)
-  (> data 1))
 (define (render data)
-  (draw b)
-  (apply-data c data))
+  (draw b))

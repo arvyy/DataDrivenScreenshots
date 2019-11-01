@@ -470,11 +470,11 @@ draw_triangle_scm(SCM a, SCM b, SCM c, SCM fill, SCM stroke, SCM stroke_width)
     Vector2 v1 = { scm_to_double(scm_car(a)), scm_to_double(scm_cdr(a)) };
     Vector2 v2 = { scm_to_double(scm_car(b)), scm_to_double(scm_cdr(b)) };
     Vector2 v3 = { scm_to_double(scm_car(c)), scm_to_double(scm_cdr(c)) };
-    float thick = scm_to_double(stroke_width);
     if (scm_is_true(fill)) {
         DrawTriangle(v1, v2, v3, scm_to_color(fill));
     }
     if (scm_is_true(stroke)) {
+        float thick = scm_to_double(stroke_width);
         Color c = scm_to_color(stroke);
         DrawLineEx(v1, v2, thick, c);
         DrawLineEx(v2, v3, thick, c);

@@ -43,4 +43,4 @@
 
 (define (render data)
   (define n (floor data))
-  (apply-data table n))
+  (draw (apply-data table n)))

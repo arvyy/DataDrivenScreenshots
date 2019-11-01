@@ -18,6 +18,12 @@
                    #:stroke (color 10 10 10)
                    #:stroke-width 10))
 
+(define t (triangle #:points '((250 . 200)
+                               (250 . 300)
+                               (400 . 250))
+                    #:stroke (color 10 10 10)
+                    #:fill (color 10 255 255)))
+
 ;override the template method 'render'
 (define (render data) ;ignore data for now
-  (cnt #:items (list r c l))) ;draw line
+  (draw (cnt #:items (list r c l t)))) ;draw line

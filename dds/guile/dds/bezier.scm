@@ -33,26 +33,60 @@
                    ((p1 p2 . _) (it (cdr points) (cons (bezier-interp/linear p1 p2 t) new-pts)))
                    (_ (bezier-interp/n (reverse new-pts) t)))))))
 
+(define (points->segments points)
+  (define (p->s segments segment last-fixed-point points)
+    (cond
+      ((null? points) segments)
+      (else (match points
+              ((('p x y) _ ...) (p->s 
+                                  (cons (reverse (cons (cons x y) segment)) segments)
+                                  (list (cons x y))
+                                  (cons x y)
+                                  (cdr points)))
+              ((('c x y) _ ...) (p->s
+                                  segments
+                                  (cons (cons x y) segment)
+                                  last-fixed-point
+                                  (cdr points)))))))
+  (match points
+    ((('p x y) . rest) (p->s '() (list (cons x y)) (cons x y) rest))
+    (_ (error "first point must be p"))))
+
+(define (segment->coords segment t-list)
+  (define x-points (map car segment))
+  (define y-points (map cdr segment))
+  (define (bez-interp t) 
+    (cons (bezier-interp/n x-points t)
+          (bezier-interp/n y-points t)))
+  (map bez-interp t-list))
+
+(define (segments->coords segments t-list)
+  (define first (caar segments))
+  (define rest/lst (map (lambda(segment)
+                          (cdr (segment->coords segment t-list))) 
+                        segments))
+  (cons first (apply append rest/lst)))
+
+(define (points->coords points t-list)
+  (segments->coords (points->segments points) t-list))
+
 (define* (bezier #:key
                  (id #f)
-                 (points '((0 . 0) (0 . 0)))
+                 (points '((p 0 0) (p 0 0)))
                  (segments 20)
+                 (fill #f)
                  (stroke (color 10 10 10))
                  (stroke-width 1))
          (define t-lst (compute (segments) 
                                 (list-ec (: i (+ segments 1)) (/ i segments))))
 
-         (define segment-points 
+         (define coords 
            (compute (points t-lst)
-                (define x-points (map car points))
-                (define y-points (map cdr points))
-                (define (bez-interp t) 
-                  (cons (bezier-interp/n x-points t)
-                        (bezier-interp/n y-points t)))
-                (map bez-interp t-lst)))
+               (points->coords points t-lst)))
 
-         (line #:points segment-points
+         (line #:points coords
                #:id id
+               #:fill fill
                #:stroke stroke
                #:stroke-width stroke-width))
 
