@@ -2,6 +2,7 @@
   (dds base-impl shader))
 
 (use-modules
+  (dds base-impl fieldbind)
   (srfi srfi-9))
 
 (define-record-type <shader>
@@ -20,4 +21,4 @@
 (define (shader id . uniforms)
   (make-shader id uniforms))
 
-(export <shader> bind*-shader shader)
+(export <shader> bind*-shader shader shader-id shader-uniforms)

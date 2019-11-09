@@ -1,16 +1,9 @@
-(define r (rect #:fill (calc (hover?) (if hover? (color 255 255 10) (color 10 255 10)))))
-(define cr (circle #:x 200 #:radius 50 #:inner-radius 25 #:fill (calc (hover?) (if hover? (color 255 255 10) (color 10 255 10)))))
-(define c (cnt #:transform (translate 100 100)
-               #:items (list r cr)
-               #:onclick (calc(data) (lambda ()(not data)))))
-
-(define (update delta data)
-  data)
-
-(define (mouse-click mouse data)
-  (define onclick (get-onclick (apply-data c data) mouse))
-  (if onclick (onclick)
-      data))
-
+(use-modules
+  (dds base input))
 (define (render d)
-  (draw (apply-data c d)))
+  (draw (circle #:x (car (get-mouse-pos))
+                #:y (cdr (get-mouse-pos))
+                #:radius 10
+                #:fill (if (is-mouse? 'left 'down)
+                               (color 250 10 10 255)
+                               (color 10 250 10 255)))))

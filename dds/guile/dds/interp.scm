@@ -93,13 +93,13 @@
   (+ a (* (- b a) f)))
 
 (define (interp-vec a b f ed)
-  (vector-map (lambda(index a b) (interp a b f ed)) a b))
+  (vector-map (lambda(index a b) (interp-pr a b f ed)) a b))
 
 (define (interp-pair a b f ed)
-  (cons (interp (car a) (car b) f ed)
-        (interp (cdr a) (cdr b) f ed)))
+  (cons (interp-pr (car a) (car b) f ed)
+        (interp-pr (cdr a) (cdr b) f ed)))
 
-(define* (interp a b f #:optional (extra-dispatch #f))
+(define (interp-pr a b f extra-dispatch)
   (define fn 
     (cond
       ((and extra-dispatch ((car extra-dispatch) a b)) (cdr extra-dispatch))
@@ -112,14 +112,20 @@
       (else (error (format #f "Can't interpolate ~a and ~a" a b)))))
   (fn a b f extra-dispatch))
 
+(define* (interp a b f #:key (extra-dispatch #f))
+  (cond
+    ((or (< f 0) (> f 1)) #f)
+    (else (interp-pr a b f extra-dispatch))))
+
+(define* (interp/clamp a b f #:key (extra-dispatch #f))
+    (interp-pr a b (min 1 (max 0 f)) extra-dispatch))
+
 (define (ease f)
   (* f f (- 3 (* 2 f))))
 
 (define (start-end start end f)
-  (min 1 
-       (max 0 
-            (/ (- f start) 
-               (- end start)))))
+  (/ (- f start) 
+     (- end start)))
 
 
-(export interp-bridge interp ease start-end)
+(export interp-bridge interp interp/clamp ease start-end)

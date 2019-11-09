@@ -6,7 +6,7 @@
   (dds base-impl color)
   (dds base-impl primitives-syntax)
   (dds base-impl triangulation)
-  (dds base native))
+  (dds base-impl native))
 
 (define-record-type+fact+bind* <line> line-fact bind*-line
     (make-line id points fill stroke stroke-width)
@@ -31,5 +31,6 @@
                             (#(a b c)
                              (draw-triangle* a b c (color->vec fill) #f 0))))
                         triangles)))
-          (draw-line* (list->vector points) (color->vec stroke) thick))))
+          (draw-line* (list->vector points) (color->vec stroke) thick)
+          )))
 (export <line> line line-o draw-line)

@@ -3,6 +3,7 @@
 
 (use-modules 
   (dds base)
+  (srfi srfi-1)
   (srfi srfi-42)
   (ice-9 match))
 
@@ -36,7 +37,7 @@
 (define (points->segments points)
   (define (p->s segments segment last-fixed-point points)
     (cond
-      ((null? points) segments)
+      ((null? points) (reverse segments))
       (else (match points
               ((('p x y) _ ...) (p->s 
                                   (cons (reverse (cons (cons x y) segment)) segments)
@@ -53,22 +54,35 @@
     (_ (error "first point must be p"))))
 
 (define (segment->coords segment t-list)
+  (define t-lst
+    (match segment
+       ((_ _) '(0 1))
+       (_ t-list)))
   (define x-points (map car segment))
   (define y-points (map cdr segment))
   (define (bez-interp t) 
     (cons (bezier-interp/n x-points t)
           (bezier-interp/n y-points t)))
-  (map bez-interp t-list))
+  (map bez-interp t-lst))
 
 (define (segments->coords segments t-list)
-  (define first (caar segments))
-  (define rest/lst (map (lambda(segment)
-                          (cdr (segment->coords segment t-list))) 
-                        segments))
-  (cons first (apply append rest/lst)))
+  (define coords (apply append (map (lambda(segment)
+                                      (segment->coords segment t-list))
+                                    segments)))
+  (define reversed-coords
+    (fold (lambda(coord prev)
+            (cond
+              ((or (null? prev)
+                   (not (equal? coord (car prev)))) 
+               (cons coord prev))
+              (else prev)))
+          '()
+          coords))
+  (reverse reversed-coords))
 
 (define (points->coords points t-list)
-  (segments->coords (points->segments points) t-list))
+  (define rez (segments->coords (points->segments points) t-list))
+  rez)
 
 (define* (bezier #:key
                  (id #f)
@@ -82,7 +96,8 @@
 
          (define coords 
            (compute (points t-lst)
-               (points->coords points t-lst)))
+               (define coords (points->coords points t-lst))
+               coords))
 
          (line #:points coords
                #:id id

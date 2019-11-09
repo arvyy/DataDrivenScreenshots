@@ -34,4 +34,4 @@
   (cnt #:items (list cnt-1 cnt-2 cnt-3)))
 
 (define (render data)
-  item)
+  (draw item))

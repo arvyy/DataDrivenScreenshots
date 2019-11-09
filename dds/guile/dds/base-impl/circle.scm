@@ -5,7 +5,7 @@
   (ice-9 match)
   (dds base-impl primitives-syntax)
   (dds base-impl color)
-  (dds base native))
+  (dds base-impl native))
 
 (define-record-type+fact+bind* <circle> circle-fact bind*-circle
     (make-circle id x y radius inner-radius start-angle end-angle fill stroke stroke-width segments)

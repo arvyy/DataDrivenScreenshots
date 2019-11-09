@@ -6,7 +6,7 @@
   (srfi srfi-1)
   (ice-9 match)
   (ice-9 format)
-  (dds base native)
+  (dds base-impl native)
   (dds base-impl color)
   (dds base-impl fieldbind)
   (dds base-impl override) 
@@ -229,6 +229,16 @@
     (define new-datum (datum-transform-fn datum))
     (map (lambda(item) (cons item new-datum)) items)))
 
+(define (cnt-items-combine . combinations)
+  (lambda (datum)
+    (define lst (map (lambda(comb)
+                       (cond
+                         ((procedure? comb) (comb datum))
+                         ((list? comb) (map (lambda(c)(cons c datum)) comb))
+                         (else (list)))) 
+                     combinations))
+    (apply append lst)))
 
-(export apply-data pattern  cnt cnt-o calc cnt-items-tpl cnt-items-transf override compute dynamic-item hover-tree text-size draw)
-(re-export rect rect-o circle circle-o triangle triangle-o line line-o t-rect t-rect-o text text-o load-texture load-shader get-shader-loc load-texture create-render-texture clear-render-texture render-texture->texture load-font script-args combine rotate translate scale shader color)
+
+(export apply-data cnt cnt-o calc cnt-items-tpl cnt-items-transf cnt-items-combine compute dynamic-item hover-tree text-size draw)
+(re-export override pattern rect rect-o circle circle-o triangle triangle-o line line-o t-rect t-rect-o text text-o load-texture load-shader get-shader-loc load-texture create-render-texture clear-render-texture render-texture->texture load-font script-args combine rotate translate scale shader color)

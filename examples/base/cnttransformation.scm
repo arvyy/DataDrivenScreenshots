@@ -17,4 +17,4 @@
                   #:transform (combine (scale 2 2) (rotate 45) (translate 50 120))))
 
 (define (render data)
-  (cnt #:items (list cnt1 cnt2 cnt3)))
+  (draw (cnt #:items (list cnt1 cnt2 cnt3))))

@@ -6,6 +6,14 @@
     (error error-message)))
 
 (define (assert-equal? value expected error-message)
-  (assert (equal? value expected) error-message))
+  (assert (equal? value expected) (format #f "Expected ~a, got ~a; " value expected error-message)))
 
-(export assert assert-equal?)
+(define (run-cases . cases)
+  (for-each
+    (lambda(c)
+      (format #t "~a\n" (car c))
+      ((cdr c)))
+    cases))
+
+
+(export assert assert-equal? run-cases)

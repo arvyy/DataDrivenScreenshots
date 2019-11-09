@@ -24,11 +24,11 @@
 ; define overrides
 (define overrides
   (list
-    (override (pattern 'root 'cnt-1 _) ; the `_` means match any. The last part refers to the rectangle itself, so we match on any since rectangle has no id set.
+    (override (pattern 'root 'cnt-1) 
               (rect-o #:fill (color 255 10 10)))
-    (override (pattern 'root 'cnt-2 _)
+    (override (pattern 'root 'cnt-2)
               (rect-o #:fill (color 10 255 10)))
-    (override (pattern 'root 'cnt-3 _)
+    (override (pattern 'root 'cnt-3)
               (rect-o #:fill (color 10 10 255)))))
 
 (define (render data)

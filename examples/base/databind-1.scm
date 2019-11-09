@@ -15,4 +15,4 @@
   (> data 200))
 
 (define (render data)
-  (apply-data r data))
+  (draw (apply-data r data)))

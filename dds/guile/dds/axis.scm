@@ -1,28 +1,32 @@
-#!
-(define-module (chart axis))
+(define-module (dds axis))
 
 (use-modules
-  (ice-9 format)
-  (chart base)
-  (chart scale))
+  (ice-9 match)
+  (dds base))
 
-(define (make-hor-axis domain range )
-  (define sc (scale-l domain range))
-  (define tick
-    (cnt #:items (list (rect #:height 5
-                             #:color (color 10 10 10)
-                             #:width 2)
-                       (text (calc d -> (number->string d))
-                             #:font-size 8
-                             #:y 8))
-         #:transform (calc d -> (list (translate (sc d) 0)))))
-  (define axis (cnt #:items (list (rect #:width (- (cdr range) (car range))
-                           #:height 2
-                           #:x (car range)
-                           #:y 0
-                           #:color (color 10 10 10))
-                     (cnt #:items (cnt-items-tpl tick (lambda d (list (car domain) (cdr domain))))))))
-  axis)
+(define hor-tick
+  (cnt
+    #:transform (calc ((d . _)) (translate d 0))
+    #:items (list 
+              (line #:points '((0 . 0)
+                               (0 . 5)))
+              (text #:text (calc ((_ . label)) label)
+                    #:x 0
+                    #:y 10
+                    #:x-offset -0.5
+                    #:y-offset 1))))
 
-(export make-hor-axis)
-!#
+(define* (hor-axis #:key
+               (ticks '()) ; (cons value label)
+               (length 0))
+   (define base-line-points (compute (length)
+                              (list (cons 0 0) (cons length 0))))
+   (define base-line (line #:points base-line-points))
+   (cnt #:items
+        (cnt-items-combine 
+          (list base-line)
+          (cnt-items-tpl
+            hor-tick
+            ticks))))
+
+(export hor-tick hor-axis ver-tick ver-axis)

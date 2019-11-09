@@ -51,4 +51,4 @@
   (> data 1))
 
 (define (render data)
-  (apply-data item data))
+  (draw (apply-data item data)))

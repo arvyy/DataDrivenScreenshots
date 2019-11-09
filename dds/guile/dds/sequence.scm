@@ -8,13 +8,15 @@
   (dds base))
 
 (define (seq-get seq t)
+  (vector-ref (seq-get* seq t) 0))
+
+(define (seq-get* seq t)
   (match seq
     (((start state) (start* state*) . _)
-     (cond
-       ((< t start*) state)
-       (else (seq-get (cdr seq) t))))
-    (((start state)) state)
-    (_ #f)))
+     (cond 
+       ((< t start*) (vector state state* (/ (- t start) (- start* start))))
+       (else (seq-get* (cdr seq) t))))
+    (((start date)) (vector state #f #f))))
 
 (define (seq-prune seq t)
   (match seq
@@ -70,4 +72,4 @@
 (define (seq/interp-get seq t)
   ((seq-get seq t) t))
 
-(export seq-get seq-prune seq-append seq->seq/interp seq/interp-get make-seq seq-empty? seq-empty)
+(export seq-get* seq-get seq-prune seq-append seq->seq/interp seq/interp-get make-seq seq-empty? seq-empty)

@@ -3,7 +3,7 @@
 
 (use-modules
   (ice-9 match)
-  (dds base native)
+  (dds base-impl native)
   (dds base-impl color)
   (dds base-impl primitives-syntax))
 

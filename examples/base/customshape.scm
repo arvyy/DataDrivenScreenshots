@@ -7,6 +7,9 @@
 ;you can add others with (add-to-load-path pathnamehere)
 ;(define-module (extensiongroupname arrow))
 
+(use-modules
+  (dds mathutil))
+
 (define (distance start end)
   (sqrt (+ (expt (- (car start) (car end)) 2)
            (expt (- (cdr start) (cdr end)) 2))))
@@ -49,7 +52,7 @@
                              (define angle (atan
                                              (- (cdr end) (cdr start))
                                              (- (car end) (car start))))
-                             (define angle-deg (* rad->deg angle))
+                             (define angle-deg (->deg angle))
                              (rotate (- angle-deg))))
     (cnt
       #:items (list 
@@ -80,4 +83,4 @@
   (> data 100))
 
 (define (render data)
-  (apply-data item data))
+  (draw (apply-data item data)))

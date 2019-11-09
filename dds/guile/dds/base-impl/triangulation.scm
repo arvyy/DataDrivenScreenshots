@@ -13,31 +13,40 @@
   (cons (- (car b) (car a))
         (- (cdr b) (cdr a))))
 
+(define (len^2 a)
+  (+ (* (car a) (car a))
+     (* (cdr a) (cdr a))))
+
 (define (perp dir-vec)
   (match dir-vec
     ((x . y) (cons (- y)
                    x))))
 
-(define (is-ear? a b c)
+(define (is-ear? a b c d)
   (define ac (dir a c))
   (define ac* (perp ac))
+  (define bc* (perp (dir c b)))
   (define ab (dir a b))
+  (define ad (dir a d))
   (define proj (dot ab ac*))
-  (>= proj 0))
+  (and (>= proj 0) (not (and (> (dot ad ac*) 0)
+                             (> (dot ad bc*) 0)))))
 
-(define (triangulate* triangles points skipped-points loop-productive?)
+(define (triangulate* triangles points skipped-points max-it)
   (match points
-     ((a b c . rest)
+     ((a b c d . rest)
       (cond
-        ((is-ear? a b c)
-         (triangulate* (cons (vector a b c) triangles) (cons a (cons c rest)) skipped-points #t))
-        (else (triangulate* triangles (cdr points) (cons (car points) skipped-points) loop-productive?))))
-     ((a b)
-      (if (or (null? skipped-points) (not loop-productive?))
-          triangles
-          (triangulate* triangles (reverse (cons b (cons a skipped-points))) '() #f)))))
+        ((is-ear? a b c d)
+         (triangulate* (cons (vector a b c) triangles) (append (list a c d) rest) skipped-points max-it))
+        (else (triangulate* triangles (cdr points) (cons (car points) skipped-points) max-it))))
+     ((a b c)
+      (if (or (null? skipped-points) (< max-it 0))
+          (cons (vector a b c) triangles)
+          ;triangles
+          (triangulate* triangles (append (list b c) (reverse skipped-points) (list a)) '() (- max-it 1))))))
 
-(define (triangulate points)
-  (triangulate* '() points '() #f))
+(define* (triangulate points #:optional (max-it #f))
+  (define max-it* (if max-it max-it (* 2 (length points))))
+  (triangulate* '() points '() max-it*))
 
 (export triangulate)

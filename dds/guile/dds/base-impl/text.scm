@@ -2,7 +2,8 @@
   (dds base-impl text))
 
 (use-modules
-  (dds base native)
+  (ice-9 match)
+  (dds base-impl native)
   (dds base-impl color)
   (dds base-impl primitives-syntax))
 
@@ -36,4 +37,4 @@
     (($ <text> id text x y x-offset y-offset font font-size spacing ($ <color> r g b a))
      (text-size* text font font-size spacing))))
 
-(export <text> text text-o hover-text? text-size)
+(export <text> text text-o hover-text? text-size draw-text)
