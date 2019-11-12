@@ -9,9 +9,6 @@
 int width;
 int height;
 
-
-char** scriptArgs;
-int scriptArgsCount;
 //container stack 
 #define MAX_CNT_STACK_SIZE 50
 typedef struct CntContext {
@@ -35,28 +32,19 @@ RenderTexture2D *draw_to_texture = NULL;
 //needed, because raylib 2D rect doesn't allow attaching another texture as shader uniform
 Model planeModel;
 
-
-
 void setWidth(int w) {
     width = w;
 }
 void setHeight(int h) {
     height = h;
 }
-void setScriptArgs(char** args, int count){
-    scriptArgs = args;
-    scriptArgsCount = count;
-}
-void init_plane_model()
-{
-    Mesh planeMesh = GenMeshPlane(1, 1, 1, 1);
-    planeModel = LoadModelFromMesh(planeMesh);
-}
 
 void initAfterRL() {
     ppTextures[0] = LoadRenderTexture(width, height);
     ppTextures[1] = LoadRenderTexture(width, height);
-    init_plane_model();
+
+    Mesh planeMesh = GenMeshPlane(1, 1, 1, 1);
+    planeModel = LoadModelFromMesh(planeMesh);
 }
 
 void draw_plane(float x, float y, float width, float height, Color color, Texture2D texture)
@@ -588,16 +576,6 @@ text_size(SCM text, SCM font_scm, SCM font_size_scm, SCM spacing_scm)
     );
 }
 
-SCM
-get_script_args()
-{
-    SCM vec = scm_c_make_vector(scriptArgsCount, SCM_BOOL_F);
-    for (int i = 0; i < scriptArgsCount; i++) {
-        SCM_SIMPLE_VECTOR_SET(vec, i, scm_from_locale_string(scriptArgs[i]));
-    }
-    return vec;
-}
-
 void base_init(void* data)
 {
     scm_c_define_gsubr("set-draw-target", 1, 0, 0, set_draw_target);
@@ -625,7 +603,6 @@ void base_init(void* data)
     scm_c_define_gsubr("pop-pp-texture", 0, 0, 0, pop_pp_texture);
     scm_c_define_gsubr("begin-pp-chain", 0, 0, 0, begin_pp_chain);
     scm_c_define_gsubr("pp-chain-next", 1, 0, 0, pp_chain_next);
-    scm_c_define_gsubr("script-args", 0, 0, 0, get_script_args);
 
     /*
     scm_c_export(

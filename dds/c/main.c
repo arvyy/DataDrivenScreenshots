@@ -1,3 +1,4 @@
+/*
 #include "base.h"
 #include "./raylib/raylib.h"
 #include "./raylib/raymath.h"
@@ -247,4 +248,4 @@ int main(int argc, char* args[]) {
     notify_wd = inotify_add_watch(notify_fd, scriptDir, (IN_MOVE | IN_MODIFY | IN_CREATE | IN_CLOSE_WRITE));
     scm_with_guile(main2, NULL);
     return 0;
-}
+}*/

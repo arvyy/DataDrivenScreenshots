@@ -1,7 +1,7 @@
 (define-module
   (dds base-impl native))
 
-(load-extension "dds/dds_native" "base_init")
+(load-extension "dds_native" "base_init")
 
 (export 
     script-args
