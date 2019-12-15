@@ -6,7 +6,6 @@ CFLAGS=`pkg-config --cflags guile-2.2 gl` -g -I/usr/include/GL -L . -lraylib
 clean:
 	rm -rf dds_native.so
 	rm -rf dds.run
-	rm -rf *.html
 
 dds_native.so: c/base.c c/base.h c/input.c c/boot.c
 	${CC} ${CFLAGS} -shared -o dds_native.so -fPIC c/*.c
