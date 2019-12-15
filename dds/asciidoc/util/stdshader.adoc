@@ -1,0 +1,36 @@
+== Standard shader
+
+This module exports some common shaders to be used with container
+
+[source,scheme]
+----
+(use-modules (dds stdshader))
+----
+
+=== opacity
+
+[source,scheme]
+----
+(opacity k)
+----
+
+Makes container partially transparent. `k` should be in range of 0 to 1 -- from fully transparent, to fullu opaque.
+
+
+=== grayscale
+
+[source,scheme]
+----
+(grayscale k)
+----
+
+Grays out colors of the container. `k` should be in range of 0 to 1 -- from normal colors, to fully gray.
+
+=== blur
+
+[source,scheme]
+----
+(blur resolution radius horizontal?)
+----
+
+Applies blur. `horizontal?` refers whether content is blured horizontal direction; if #f it's blured vertically. Resolution is width/height depending on `horizontal?`, `radius` is blurring radius. 

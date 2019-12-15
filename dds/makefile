@@ -1,32 +1,30 @@
 CC=gcc
 
 # Tell the C compiler where to find <libguile.h>
-CFLAGS=`pkg-config --cflags guile-2.2 gl` -g -I/usr/include/GL
-
-# Tell the linker what libraries to use and where to find them.
-LIBS=`pkg-config --libs guile-2.2 gl`
-RAYLIB=`pkg-config --libs raylib`
+CFLAGS=`pkg-config --cflags guile-2.2 gl` -g -I/usr/include/GL -L . -lraylib
 
 clean:
 	rm dds_native.so
+	rm dds.run
+	rm *.html
 
 dds_native.so: c/base.c c/base.h c/input.c c/boot.c
-	${CC} ${CFLAGS} ${RAYLIB} -shared -o dds_native.so -fPIC c/*.c
+	${CC} ${CFLAGS} -shared -o dds_native.so -fPIC c/*.c
 
-dds_install: dds_native.so
-	cp dds_native.so `pkg-config guile-2.2 --variable=extensiondir`
-	cp libraylib.so.2.5.0 `pkg-config guile-2.2 --variable=extensiondir`
-	mkdir `pkg-config guile-2.2 --variable=sitedir` -p
-	cp guile/dds `pkg-config guile-2.2 --variable=sitedir` -r
+dds_docs:
+	asciidoctor -D . asciidoc/*.adoc
 
-#main: main.o dds_native.so dds_input.so
-#	${CC} main.o -Wl,-rpath='dds' dds_native.so libraylib.so.2.5.0 ${LIBS} -o ../main
-#
-#main.o: c/main.c
-#	${CC} -c ${CFLAGS} c/main.c 
-#
-#dds_input.so: c/input.c
-#	${CC} ${CFLAGS} -shared -o dds_input.so -fPIC c/input.c
-#
-#dds_native.so: c/base.c c/base.h
-#	${CC} ${CFLAGS} -shared -o dds_native.so -fPIC c/base.c
+dist: clean dds_docs dds_native.so
+	mkdir -p dist
+	mkdir dist/native
+	mkdir dist/docs
+	cp libraylib.so.2.5.0 dist/native/libraylib.so
+	cp dds_native.so dist/native
+	cp -r guile dist
+	cp bash/ddsrunner.sh dist/dds.sh
+	cp bash/installer.sh dist/installer.sh
+	cp bash/uninstaller.sh dist/uninstaller.sh
+	cp asciidoc/*.html dist/docs
+	cp -r examples dist
+	makeself dist dds.run 'Guile DDS' ./installer.sh
+	rm -r dist

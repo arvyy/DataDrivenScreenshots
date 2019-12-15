@@ -1,0 +1,6 @@
+== Gif boot
+
+This module loads and invokes script at run time (as provided by first command line argument), sets up a reloading mechanism to react to changed script file, and initiates runner. Loading this module will result eather in an error if it's not setup correctly, or infinite loop if it is, and thus
+it's not intended to be used from code, but invoked from command line.
+
+The module expects, that the provided script defines `get-dds-gif`, as an instance of dds-gif record.

@@ -1,0 +1,33 @@
+== Gif base
+
+Module for defining and running gifs. 
+
+[source,scheme]
+----
+(use-modules (dds gif base))
+----
+
+=== dds-gif
+
+[source,scheme]
+----
+(dds-gif)
+----
+
+Constructs a gif record. It has following properties
+
+* width - width of the window. Defaults 600.
+* height - height of the window. Defaults 480.
+* duration - duration in seconds. Can be #f, in which case it'd be single image. Defaults #f.
+* fps - frames per second. Defaults 60.
+* rec-ouput - directory, where image sequence will be exported when recording. Can be #f, in which case recording is disabled. Defaults to #f.
+* item-getter - function, that time as parameter, and returns item to be rendered.
+
+=== run
+
+[source,scheme]
+----
+(run gif-record [module-reloader])
+----
+
+Starts the runner with provided `gif-record`. Optionally a no argument `module-reloader` function can be provided, which is invoked a few times a second. Its purpose to faciliate hot code reload if the source of the gif-record definer had changed. 

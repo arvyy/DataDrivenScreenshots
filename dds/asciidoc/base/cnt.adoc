@@ -1,0 +1,43 @@
+== Container
+
+=== cnt
+
+[source,scheme]
+----
+(cnt)
+----
+
+Constructs a container instance. Container has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* transform - affine transformation to apply on items of the container. See affine transform section for constructing transformation matrices.
+* blend - color blending to be applied in this container. Should be a pair of symbols, which correspond to source and target functions. 
+* post-processing - list of shaders to apply on the container. Must be a list of either shader, or shader-config objects.
+* items - list of container items. If it's a function, can return either a list of items, or a list of pairs of item and datum. Also see `cnt-items-tpl` and `cnt-items-transf`. 
+
+=== cnt-o
+
+[source,scheme]
+----
+(cnt-o)
+----
+
+Constructs a container instance, similar to `cnt`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-cnt`.
+
+=== cnt?
+
+[source,scheme]
+----
+(cnt? c)
+----
+
+Returns #t if `c` is a container, #f otherwise.
+
+=== override-cnt
+
+[source,scheme]
+----
+(override-cnt cnt-item cnt-override)
+----
+
+Overrides properties in cnt `cnt-item` with those cnt's `cnt-override` properties that are not #f. If properties in `cnt-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `cnt-item`. If the property in `cnt-item` was a procedure, the overring method is called during data application call.

@@ -1,0 +1,10 @@
+== Screenshot
+
+=== take-screenshot
+
+[source,scheme]
+----
+(take-screenshot filename)
+----
+
+Saves PNG screenshot of current frame. `filename` is file path to save as. 

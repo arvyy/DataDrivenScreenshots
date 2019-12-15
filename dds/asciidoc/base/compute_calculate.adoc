@@ -1,0 +1,36 @@
+== Compute and Calculate
+
+=== compute
+
+[source,scheme]
+----
+(compute ([func/value ...])
+    body ...)
+----
+
+Syntax, that allows defining new function or value using other functions or values as dependency to be used as a property.
+
+Example
+
+[source,scheme]
+----
+(define* (check #:keys 
+                (width 100)
+                (height 100))
+    (define points 
+        (compute (width height)
+            (list (cons 0 (* 0.5 height))
+                  (cons (* 0.5 width) height)
+                  (cons width 0))))
+    (line #:points points))
+----
+
+=== calc
+
+[source,scheme]
+----
+(calc (pattern)
+    body ...)
+----
+
+Single argument function syntax, but its argument is patternmatched

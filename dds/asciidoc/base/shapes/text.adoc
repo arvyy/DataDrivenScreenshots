@@ -1,0 +1,86 @@
+== Text
+
+=== text
+
+[source,scheme]
+----
+(text)
+----
+
+Constructs a text instance. Text has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* text - actual text / string to render/ Defaults to empty string.
+* x - text x position of the left side. Also see x-offset property. Defaults to 0.
+* y - text y position of the top side. Also see y-offset property. Defaults to 0.
+* x-offset - additional offset of the x positioning, expressed as a proportion of text length. In effect this allows defining text horizontal alignment. Defaults to 0.
+* y-offset - additional offset of the y positioning, expressed as a proportion of text height. In effect this allows defining text vertical alignment. Defaults to 0.
+* font - font to use. See `load-font` for getting the fonts. Can be #f to use default font. Defaults to #f.
+* font-size - size of the font. Defaults to 12.
+* spacing - spacing between letters. Defaults to 2.
+* color - color of text. Defaults to `(color 10 10 10)`
+
+Example 
+
+[source,scheme]
+----
+(text #:x 50
+      #:y 50
+      #:text "Hellow world")
+----
+
+=== load-font
+
+[source,scheme]
+----
+(load-font fontPath)
+----
+
+Loads font from given `fontPath`. 
+
+=== text-o
+
+[source,scheme]
+----
+(text-o)
+----
+
+Constructs a text instance, similar to `text`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-text`.
+
+
+=== text?
+
+[source,scheme]
+----
+(text? c)
+----
+
+Returns #t if `c` is a text, #f otherwise.
+
+=== override-text
+
+[source,scheme]
+----
+(override-text text-item text-override)
+----
+
+Overrides properties in text `text-item` with those text's `text-override` properties that are not #f. If properties in `text-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `text-item`. If the property in `text-item` was a procedure, the overring method is called during data application call.
+
+Exmaple
+
+[source,scheme]
+----
+(define textA (text #:text "Foo" #:color (color 255 0 0)))
+(define textOverride (text-o #:color (color 0 255 0)))
+(define overridenText (override-text textA textOverride))
+(equals? overridenText (text #:text "Foo" #:color (color 0 255 0))) ;should be true
+----
+
+=== text-size
+
+[source,scheme]
+----
+(text-size text-item)
+----
+
+Returns the size of the provided item. Returned value is a pair of width and height.

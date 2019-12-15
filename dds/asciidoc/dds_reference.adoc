@@ -1,0 +1,77 @@
+= DDS Reference
+Arvydas Šilanskas 
+v0.1
+:toc:
+:toclevels: 4
+
+This document contains reference to functions exported by dds base, dds-gif, and dds util modules. 
+
+== DDS Base
+
+Base module. 
+
+[source,scheme]
+----
+(use-modules
+    (dds base))
+----
+
+:leveloffset: +1
+
+include::base/shapes/circle.adoc[]
+
+include::base/shapes/line.adoc[]
+
+include::base/shapes/rect.adoc[]
+
+include::base/shapes/t-rect.adoc[]
+
+include::base/shapes/text.adoc[]
+
+include::base/shapes/triangle.adoc[]
+
+include::base/cnt.adoc[]
+
+include::base/color.adoc[]
+
+include::base/item.adoc[]
+
+include::base/shader.adoc[]
+
+include::base/transform.adoc[]
+
+include::base/screenshot.adoc[]
+
+:leveloffset: -1
+
+== DDS Util
+
+Reference for various utility modules. Each module has to be included separately.
+
+:leveloffset: +1
+
+include::util/bezier.adoc[]
+
+include::util/blend.adoc[]
+
+include::util/interp.adoc[]
+
+include::util/mathutil.adoc[]
+
+include::util/sequence.adoc[]
+
+include::util/stdshader.adoc[]
+
+:leveloffset: -1
+
+== DDS Gif
+
+Reference for DDS gif maker.
+
+:leveloffset: +1
+
+include::gif/base.adoc[]
+
+include::gif/boot.adoc[]
+
+:leveloffset: -1

@@ -1,0 +1,26 @@
+= DDS - Data Driven Screenshots
+
+DDS is a Guile library for creating visuals. Its two core intents is attributes' description in terms of functions of data, and access to low level features like shaders.
+Its intended use case is to be a tool of creating images / gifs / videos of things.
+
+== Installation
+
+* Install Guile.
+* Run provided `dds.run` file. This installs scheme library code into your guile installation's sitedir, as well as creates `dds` folder in your working directory, which contains launcher, examples, documentation, and uninstaller script.
+
+== Uninstalling
+
+* Run uninstall.sh as root. 
+
+== Running examples (& your own scripts)
+
+Run `dds.sh`, and pass script file as a parameter. 
+
+[source,sh]
+----
+./dds.sh examples/base/shape.scm
+----
+
+== Reference 
+
+link:dds_reference.html[Reference can be found here]

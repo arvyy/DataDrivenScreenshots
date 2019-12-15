@@ -1,0 +1,51 @@
+== Bezier module
+
+Module for bezier curves, and bezier interpolation
+
+[source,scheme]
+----
+(use-modules (dds bezier))
+----
+
+=== bezier-interp/quadratic
+
+[source,scheme]
+----
+(bezier-interp/quadratic p0 c p1 t)
+----
+
+Returns quadratic bezier interpolation with control points `p0`, `c`, and `p1` by given proportion `t`. `t` must be between 0 and 1. 
+
+=== bezier-interp/cubic
+
+[source,scheme]
+----
+(bezier-interp/cubic p0 c1 c2 p2 t)
+----
+
+Returns cubic bezier interpolation with control points `p0`, `c1`, `c2`, and `p2` by given proportion `t`. `t` must be between 0 and 1.
+
+=== bezier-interp/n
+
+[source,scheme]
+----
+(bezier-interp/n points t)
+----
+
+Returns a bezier interpolation with contrl points `points` (must be a list of numbers) by given proportion `t`. `t` must be between 0 and 1.
+
+=== bezier
+
+[source,scheme]
+----
+(bezier)
+----
+
+Constructs a line instance. Bezier function has following properties (each of which can be either a value, or a function of data)
+
+* id - line id. Can be anything. Defaults to #f.
+* points - list points for the curve. Each point must be match either `(list 'p x y)`, or `(list 'c x y)`. `'p` denotes a point throught which line goes directly through. `'c` denotes a control point which adjusts curvature. The provided points construct a line which is a spline of bezier curves, where each spline is of the same degree as amount of control (`'c`) points in between fixed points (`'p`). Defaults to `'((p 0 0) (p 0 0))`
+* segments - amount of segments used for each spline. Defaults to 20.
+* fill - color to fill curve. Can be #f for no fill. Defaults to #f.
+* stroke - color to stroke curve. Can be #f for no stroke. Defaults to `(color 10 10 10)`.
+* stroke-width - width of the stroke. Defaults 1.

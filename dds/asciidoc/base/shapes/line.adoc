@@ -1,0 +1,55 @@
+== Line
+
+=== line
+
+[source,scheme]
+----
+(line)
+----
+
+Constructs a line instance. Line has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* points - list of points. Each point must be a pair of x and y coordinates. Defaults to `'()`.
+* fill - color to fill polygon formed by the line (first and last points are joined). Either instance of color, or #f. Defaults to #f.
+* stroke - color to stroke the line. Either instance of color, or #f. Defaults to `(color 10 10 10)`.
+* stroke-width - width of stroke. Defaults to 1.
+
+Example
+
+[source,scheme]
+----
+(line #:points '((20 . 10)
+                 (60 . 10))
+      #:stroke (color 250 100 100))
+----
+
+=== line-o
+
+[source,scheme]
+----
+(line-o)
+----
+
+Constructs a line instance, similar to `line`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-line`.
+
+=== override-line
+
+[source,scheme]
+----
+(override-line line-item line-override)
+----
+
+Overrides properties in line `line-item` with those line's `line-override` properties that are not #f. If properties in `line-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `line-item`. If the property in `line-item` was a procedure, the overring method is called during data application call.
+
+Example
+
+[source,scheme]
+----
+(define lineA (line #:stroke (color 255 0 0)
+                    #:points '((0 . 0) (0 . 10))))
+(define lineOverride (line-o #:stroke (color 0 255 0)))
+(define overridenLine (override-line lineA lineOverride))
+(equals? overridenLine (line #:stroke (color 0 255 0) 
+                             #:points '((0 . 0) (0 . 10)))) ;should be true
+----

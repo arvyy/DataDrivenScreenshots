@@ -1,0 +1,54 @@
+== Affine Transform
+
+Affine transforms are vectors of length 6 that represent 4x4 transformation matrix. `(vector a b c d e f)` is interpreted as
+
+  a b 0 c
+  d e 0 f
+  0 0 1 0
+  0 0 0 1
+
+=== translate
+
+[source,scheme]
+----
+(translate tx ty)
+----
+
+Creates a translation affine transformation, where `tx` is translation over x axis, and `ty` -- over y axis.
+
+=== rotate
+
+[source,scheme]
+----
+(rotate k)
+----
+
+Creates a rotation affine transformation, where `k` is rotation in degrees clockwise in degrees.
+
+=== scale
+
+[source,scheme]
+----
+(scale kx ky)
+----
+
+Creates a scale affine transformation, where `kx` is scaling along x axis, and `ky` -- along y.
+
+=== combine
+
+[source,scheme]
+----
+(combine [transformation ...])
+----
+
+Combines given transformations into one. As usual with matrices, order matters.
+
+Example
+
+[source,scheme]
+----
+(define tr (translate 50 60))
+(define rot (rotate 45))
+(define sc (scale 3))
+(combine sc rot tr)
+----

@@ -1,0 +1,71 @@
+== Sequence
+
+This module allows defining sequence of state depending on time. 
+
+[source,scheme]
+----
+(use-modules (dds sequence))
+----
+
+=== make-seq
+
+[source,scheme]
+----
+(make-seq states)
+----
+
+Creates sequence. `states` is a list, where each element is `(list start-time state)`, where `start-time` is when the state starts, and state is any given datum.
+
+=== seq-append
+
+[source,scheme]
+----
+(seq-append seq states)
+----
+
+Appends new states to an existing sequence `seq`. `states` follow same format as and in `make-seq`.
+
+=== seq-get
+
+[source,scheme]
+----
+(seq-get sequence t)
+----
+
+Returns the state from sequence at time point `t`. Note if you're using interpolated sequence, the returned value isn't a state; use `seq/interp-get`.
+
+=== seq-get*
+
+[source,scheme]
+----
+(seq-get* sequence t)
+----
+
+Returns `(vector state next-state f)`, where `state` is current state, `next-state` is next state in sequence, and `f` is fraction of how much time has passed between `state` and `next-state` interval.
+
+=== seq-prune
+
+[source,scheme]
+----
+(seq-prune seq t)
+----
+
+Prunes given sequence, and removes all passed states up to point `t`.
+
+=== seq->seq/interp
+
+[source,scheme]
+----
+(seq->seq/interp seq interp-fn [bridge-fn])
+----
+
+Transforms the sequence into interpolated sequence, and instead of getting step state value, the interpolated value between the steps is returned. `interp-fn` is interpolator function, that takes 3 arguments - state1, state2, and fraction [0, 1] - and returns interpolated state. See `(dds interp)` module for common interpolation. `bridge-fn` is a function that bridges values into same arity, it takes two arguments state1, state2, and returns 2 values state1* and state2*. See `interp-bridge` function in `(dds interp)` for enter/update/exit matching bridging between lists. 
+
+=== seq/interp-get
+
+[source,scheme]
+----
+(seq/interp-get seq t)
+----
+
+Gets current state from the interpolated sequence.

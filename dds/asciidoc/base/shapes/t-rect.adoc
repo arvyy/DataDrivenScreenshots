@@ -1,0 +1,81 @@
+== Textured rectangle
+
+=== t-rect
+
+[source,scheme]
+----
+(t-rect)
+----
+
+Constructs a t-rectangle instance. Rectangle has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* x - x position of the rectangle's upper left corner. Defaults to 0.
+* y - y position of the rectangle's upper left corner. Defaults to 0.
+* width - width of the rectangle. Can be #f, in which case texture's width is used. Defaults to #f.
+* height - height of the rectangle. Can be #f, in which case texture's height is used. Defaults to #f. 
+* src-x - x position of the rectangle in the texture space. Defaults to 0.
+* src-y - y position of the rectangle in the texture space. Defaults to 0.
+* src-width - width of the rectange in the texture space. Can be #f, in which case texture's width is used. 
+* src-height - height of the rectangle in the texture space. Can be #f, in which case texture's height is used. Defaults to #f. 
+* color - color to use as a tint. Defaults to `(color 255 255 255)`.
+* texture - texture to be drawn. Can be #f, in which case default texture is used. Defaults to #f. 
+
+Example
+
+[source,scheme]
+----
+(define texture-a (load-texture "texture-a.png"))
+(t-rect
+      #:x 50
+      #:y 50
+      #:texture texture-a)
+----
+
+=== load-texture
+
+[source,scheme]
+----
+(load-texture path)
+----
+
+Loads and returns texture by given `path` string.
+
+=== t-rect-o
+
+[source,scheme]
+----
+(t-rect-o)
+----
+
+Constructs a texture rectangle instance, similar to `t-rect`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-t-rect`.
+
+=== t-rect?
+
+[source,scheme]
+----
+(t-rect? r)
+----
+
+Returns #t if `r` is a texture rectangle, #f otherwise.
+
+=== override-t-rect
+
+[source,scheme]
+----
+(override-t-rect t-rect-item t-rect-override)
+----
+
+Overrides properties in texture rectangle `t-rect-item` with those texture rectangle's `t-rect-override` properties that are not #f. If properties in `t-rect-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `t-rect-item`. If the property in `t-rect-item` was a procedure, the overring method is called during data application call.
+
+Example
+
+[source,scheme]
+----
+(define rectA (t-rect #:color (color 255 0 0)))
+(define rectOverride (rect-o #:color (color 0 255 0)))
+(define overridenRect (override-t-rect rectA rectOverride))
+(equals? overridenRect (t-rect #:color (color 0 255 0))) ;should be true
+----
+
+

@@ -1,0 +1,66 @@
+== Boot
+
+This section includes window context creation and initialization methods. If you're using `dds-gif`, these are done for you.
+
+=== init-window
+
+[source,scheme]
+----
+(init-window width height fps title)
+----
+
+Creates window. All operations regarding input, shader, and drawing will fail without this method being called first. `width` and `height` are numbers describing window dimensions, `fps` is target frames per second, `title` is the name shown at window bar.
+
+=== window-close?
+
+[source,scheme]
+----
+(window-close?)
+----
+
+Returns whether it's determined that the window should be closed.
+
+=== begin-draw
+
+[source,scheme]
+----
+(begin-draw)
+----
+
+Begins drawing. Must be called before using draw function.
+
+=== end-draw
+
+[source,scheme]
+----
+(end-draw)
+----
+
+Ends drawing, and flushes the drawing calls to be executed and actually rendered. 
+
+=== rlgl-draw
+
+[source,scheme]
+----
+(rlgl-draw)
+----
+
+Flushes the drawing calls to be executed and rendered.
+
+=== clear-bg
+
+[source,scheme]
+----
+(clear-bg color)
+----
+
+Clears color buffer with given color. Color must be a vector of length 3 with RGB values, each in range 0-255
+
+=== get-frame-time
+
+[source,scheme]
+----
+(get-frame-time)
+----
+
+Returns time in seconds since the last frame.

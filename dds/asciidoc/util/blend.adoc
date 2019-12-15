@@ -1,0 +1,35 @@
+== Common blending
+
+This module exports couple of common blendings to be used in container. 
+
+[source,scheme]
+----
+(use-modules (dds blending))
+----
+
+=== blend/alpha
+
+[source,scheme]
+----
+blend/alpha
+----
+
+Alpha blending. Equals to `(cons 'GL_SRC_ALPHA 'GL_ONE_MINUS_SRC_ALPHA)`.
+
+=== blend/add
+
+[source,scheme]
+----
+blend/add
+----
+
+Additive blending. Equals to `(cons 'GL_ONE 'GL_ONE)`.
+
+=== blend/mult
+
+[source,scheme]
+----
+blend/mult
+----
+
+Multiplicative blending. Equals to `(cons 'GL_DST_COLOR 'GL_ONE_MINUS_SRC_ALPHA)`.

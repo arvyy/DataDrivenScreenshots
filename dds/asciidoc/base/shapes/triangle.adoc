@@ -1,0 +1,64 @@
+== Triangle
+
+=== triangle
+
+[source,scheme]
+----
+(triangle)
+----
+
+Constructs a triangle instance. Triangle has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* points - list of points, where each point is a pair of x and y coordinates. Can be more than 3, in which cases a triangle strip is constructed. Defaults to '().
+* fill - color to fill triangle. Either instance of color, or #f. Defaults to `(color 200 100 100)`.
+* stroke - color to stroke triangle border. Either instance of color, or #f. Defaults to `(color 10 10 10)`.
+* stroke-width - width of stroke. Defaults to 1.
+
+Example 
+
+[source,scheme]
+----
+(triangle #:points '((0 . 0)
+                     (0 . 50)
+                     (50 . 0))
+          #:fill (color 255 0 0))
+----
+
+=== triangle-o
+
+[source,scheme]
+----
+(triangle-o)
+----
+
+Constructs a triangle instance, similar to `triangle`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-triangle`.
+
+
+=== triangle?
+
+[source,scheme]
+----
+(triangle? t)
+----
+
+Returns #t if `t` is a triangle, #f otherwise.
+
+=== override-triangle
+
+[source,scheme]
+----
+(override-triangle triangle-item triangle-override)
+----
+
+Overrides properties in triangle `triangle-item` with those triangle's `triangle-override` properties that are not #f. If properties in `triangle-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `triangle-item`. If the property in `triangle-item` was a procedure, the overring method is called during data application call.
+
+Exmaple
+
+[source,scheme]
+----
+(define triangleA (triangle #:fill (color 255 0 0) #:points '((0 . 0) (0 . 50) (50 . 0))))
+(define triangleOverride (triangle-o #:fill (color 0 255 0)))
+(define overridenTriangle (override-triangle triangleA triangleOverride))
+(equals? overridenTriangle (triangle #:fill (color 0 255 0) #:points '((0 . 0) (0 . 50) (50 . 0)))) ;should be true
+----

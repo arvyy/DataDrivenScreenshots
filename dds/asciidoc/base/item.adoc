@@ -1,0 +1,79 @@
+== Base item functions
+
+
+=== hover-lst
+
+[source,scheme]
+----
+(hover-lst item-def mouse-pos [result-with-pos])
+----
+
+Returns unwrapped list of all items of `item-def` itself and its children, that are determined to be hovered by the given mouse position `mouse-pos` (a pair of x and y coordinates). If `result-with-pos` is given, and is not #f, returns a list of pairs instead, where car is the item, and cdr is mouse position in items local coordinates.
+
+Example 
+
+[source,scheme]
+----
+(define r (rect #:x 0 #:y 0 #:width 10 #:height 10))
+(define c (circle #:x 5 #:y 15 #:radius 5))
+(define item 
+    (cnt #:items (list r c)))
+(equal? (list item r) (hover-lst item '(5 . 5))) ;should return #t
+(equal? '() (hover-lst item '(-1 . -1))) ;should return #t
+----
+
+=== apply-data
+
+[source,scheme]
+----
+(apply-data item-def data)
+----
+
+Applies data to the item, and resolves all properties defined as functions into exact values. If item is a container, the application is propagated to its children.
+
+Example 
+
+[source,scheme]
+----
+(define r (rect #:x (lambda(data) (car data))
+                #:y (lambda(data) (cdr data))))
+(equal? 
+    (apply-data r '(10 50))
+    (rect #:x 10 #:y 50)) ;should return #t
+----
+
+=== item-data
+
+[source,scheme]
+----
+(item-data item-def)
+----
+
+Returns data that was applied to get given item. If data was never applied, returns #f.
+
+Example
+
+[source,scheme]
+----
+(define r (rect #:x (lambda(data) data)))
+(define applied-r (apply-data r 10))
+(equal? 10 (item-data applied-r)) ;should return #t
+(equal? #f (item-data r)) ; should return #f
+----
+
+=== item-id
+
+[source,scheme]
+----
+(item-id item-def)
+----
+
+Retrieves id of the given item.
+
+Example 
+
+[source,scheme]
+----
+(define r (rect #:id 'rect))
+(equal? 'rect (item-id r)) ;should return #t
+----

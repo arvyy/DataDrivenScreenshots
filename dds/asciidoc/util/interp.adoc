@@ -1,0 +1,69 @@
+== Interpolation
+
+Module for interpolating between two values.
+
+[source,scheme]
+----
+(use-modules (dds interp))
+----
+
+=== interp-bridge
+
+[source,scheme]
+----
+(interp-bridge)
+----
+
+Bridges two lists to same arrity, which then can be interpolated between each other. Elements can be matched either by id function, or by position
+
+Has following properties
+
+* enter - build elements that are present in second list and missing in first. Must be a function with one parameter of data.
+* update - update function for transforming elements present in both lists.
+* exit
+* id
+
+=== interp
+
+[source,scheme]
+----
+(interp from to t [extra-dispatch])
+----
+
+Interpolates between `from` and `to` values with proportion of `t`. `t` can be any number, however anything beyond 0 to 1 range will return #f. If `extra-dispatch` is given, it's first checked before proceding with default. `extra-dispatch` must be a pair, of which first element should be a function of two arguments (from and to) and returns #t or #f depending if it will handle them, and second should be a function that actually does the interpolation. Arguments to the second function are same as to `interp`. 
+
+By default this function interpolates:
+
+* numbers
+* vectors (must be same arity)
+* pairs (in case of lists, must be same arity)
+* strings (the second string is returned)
+* symbols (the second symbol is returned)
+* colors
+
+=== interp/clamp
+
+[source,scheme]
+----
+(interp/clamp from to t [extra-dispatch])
+----
+
+Same as `interp`, but instead of returning #f when t is outside 0 to 1 range, it instead clamps it to 0 or 1, depending on which is closer. 
+
+=== ease
+
+[source,scheme]
+----
+(ease f)
+----
+
+Applies easing by returning `3*f^2 - 2*f^3`
+
+=== start-end
+
+[source,scheme]
+----
+(start-end start end f)
+----
+
+Maps `f` to range [start; end] by returning `(f - start) / (end - start)`.

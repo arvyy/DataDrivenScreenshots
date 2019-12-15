@@ -1,0 +1,35 @@
+== Math util
+
+Small utility math module
+
+[source,scheme]
+----
+(use-modules (dds mathutil))
+----
+
+=== PI
+
+[source,scheme]
+----
+PI
+----
+
+PI constant.
+
+=== ->deg
+
+[source,scheme]
+----
+(->deg rad)
+----
+
+Converts radians to degrees.
+
+=== ->rad
+
+[source,scheme]
+----
+(->rad deg)
+----
+
+Converts degrees to radians.

@@ -1,0 +1,46 @@
+== Color
+
+=== color
+
+[source,scheme]
+----
+(color r g b [a])
+----
+
+Constructs color instance with provided red (r), green (g), blue (b), and optionally alpha (a) values. Each value must be in range 0 to 255. If alpha is not provided, defaults to 255.
+
+=== color-r
+
+[source,scheme]
+----
+(color-r c)
+----
+
+Returns red component of the color c.
+
+=== color-g
+
+[source,scheme]
+----
+(color-g c)
+----
+
+Returns green component of the color c.
+
+=== color-b
+
+[source,scheme]
+----
+(color-b c)
+----
+
+Returns blue component of the color c.
+
+=== color-a
+
+[source,scheme]
+----
+(color-a c)
+----
+
+Returns alpha component of the color c.

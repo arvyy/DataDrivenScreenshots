@@ -1,0 +1,63 @@
+== Shader
+
+Shaders have two ways of being passed - using direct construct, or using a configuration construct, which has factory and configuration parts. The second approach should be made for the ease of overriding in other places, as well as for allowing to be constructed before window initialization.
+
+=== load-shader
+
+[source,scheme]
+----
+(load-shader vertexFilePath fragmentFilePath)
+----
+
+Loads shader using provided vertex and fragment file paths. Either can be #f, in which case a default vertex/fragment are used. 
+
+=== load-shader-text
+
+[source,scheme]
+----
+(load-shader-text vertexCode fragmentCode)
+----
+
+Similar to `load-shader`, but instead of path, the source code itself is provided. Either can be #f, in which case a default vertex/fragment are used.
+
+=== get-shader-loc
+
+[source,scheme]
+----
+(get-shader-loc shader-id uniformName)
+----
+
+Returns location for the shader uniform. `shader-id` is shader loaded using `load-shader` or `load-shader-text`. `uniformName` is string denoting name of a uniform in shader.
+
+=== make-shader-setup
+
+[source,scheme]
+----
+(make-shader-setup builder config)
+----
+
+Makes a shader setup object. `config` is any user defined object that makes sense as a config for the shader. `builder` is a one argument function that takes config as a parameter, and returns shader. See `make-shader` bellow.
+
+=== shader-setup-map
+
+[source,scheme]
+----
+(shader-setup-map shader-setup mapper)
+----
+
+Returns a new shader-setup object with same builder function, and a converted config after applying mapper.
+
+=== make-shader
+
+[source,scheme]
+----
+(make-shader shader-id uniforms-lst)
+----
+
+Builds a shader instance. `shader-id` refers to loaded shader using `load-shader` or `load-shader-text`. `uniforms-lst` is a list of uniforms. Each item should match one of the following (`loc` refers to location, as returned by `get-shader-loc`)
+
+* `(list 'vec loc val)` - sets vector. `val` can be a vector of up to 4 elements. Note, that a simple float is also set using this method (wherein val then is a vector of length 1)
+* `(list 'cnt-transform loc)` - sets current transformation of inner-most container. The `loc` should be referring to a matrix.
+* `(list 'matrix loc value)` - sets transformation matrix. See affine transform section for constructing matrices.
+* `(list 'matrix/invert loc value)` - sets value of inverted matrix.
+* `(list 'texture loc value)` - sets value of a sampler2d. value should refer to a texture loaded with `load-texture`.

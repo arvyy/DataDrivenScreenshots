@@ -1,0 +1,67 @@
+== Rect
+
+=== rect
+
+[source,scheme]
+----
+(rect)
+----
+
+Constructs a rectangle instance. Rectangle has the following properties (each of which can be either a value, or a function of data)
+
+* id - item id. Can be anything. Defaults to `#f`.
+* x - x position of the rectangle's upper left corner. Defaults to 0.
+* y - y position of the rectangle's upper left corner. Defaults to 0.
+* width - width of the rectangle. Defaults to 100.
+* height - height of the rectangle. Defaults to 100.
+* roundness - how much the corners are rounded. Should be number between 0 and 1. Defaults to 0.
+* fill - color to fill rectangle. Either instance of color, or #f. Defaults to `(color 200 100 100)`.
+* stroke - color to stroke rectangle border. Either instance of color, or #f. Defaults to `(color 10 10 10)`.
+* stroke-width - width of stroke. Defaults to 1.
+* segments - segment count for rendering the rounded corners (when roundness > 0). Higher count will make circle smoother. Defaults to 20.
+
+Example
+
+[source,scheme]
+----
+(rect #:x 50
+      #:y 50
+      #:fill (color 0 250 0))
+----
+
+=== rect-o
+
+[source,scheme]
+----
+(rect-o)
+----
+
+Constructs a rectangle instance, similar to `rect`. Difference, however, is that the defaults for all properties are `#f` instead. Intended to be used with overriding, see `override-rect`.
+
+=== rect?
+
+[source,scheme]
+----
+(rect? r)
+----
+
+Returns #t if `r` is a rectangle, #f otherwise.
+
+=== override-rect
+
+[source,scheme]
+----
+(override-rect rect-item rect-override)
+----
+
+Overrides properties in rectangle `rect-item` with those rectangle's `rect-override` properties that are not #f. If properties in `rect-override` are given as functions, the supplied parameter is not datum as usual, but the corresponding property value from `rect-item`. If the property in `rect-item` was a procedure, the overring method is called during data application call.
+
+Exmaple
+
+[source,scheme]
+----
+(define rectA (rect #:fill (color 255 0 0)))
+(define rectOverride (rect-o #:fill (color 0 255 0)))
+(define overridenRect (override-rect rectA rectOverride))
+(equals? overridenRect (rect #:fill (color 0 255 0))) ;should be true
+----

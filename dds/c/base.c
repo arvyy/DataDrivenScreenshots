@@ -239,6 +239,15 @@ apply_transform(SCM transform)
 }
 
 SCM
+take_screenshot(SCM file_scm)
+{
+    char* file = scm_to_utf8_stringn(file_scm, NULL);
+    TakeScreenshot(file);
+    free(file);
+    return SCM_BOOL_T;
+}
+
+SCM
 load_font(SCM fontFile)
 {
     char* file = scm_to_utf8_stringn(fontFile, NULL);
@@ -314,6 +323,25 @@ load_shader(SCM vertexShaderFile, SCM fragmentShaderFile)
     *shader_ptr = LoadShader(vsFile, fsFile);
     if (vsFile != NULL) free(vsFile);
     if (fsFile != NULL) free(fsFile);
+    SCM new_shader_id = scm_from_pointer(shader_ptr, NULL);
+    return new_shader_id;
+}
+
+SCM
+load_shader_text(SCM vertexShaderText, SCM fragmentShaderText)
+{
+    char* vsText = NULL;
+    if (scm_is_true(vertexShaderText)) {
+        vsText = scm_to_utf8_stringn(vertexShaderText, NULL);
+    }
+    char* fsText = NULL;
+    if (scm_is_true(fragmentShaderText)) {
+        fsText = scm_to_utf8_stringn(fragmentShaderText, NULL);
+    }
+    Shader* shader_ptr = malloc(sizeof (Shader));
+    *shader_ptr = LoadShaderCode(vsText, fsText);
+    if (vsText != NULL) free(vsText);
+    if (fsText != NULL) free(fsText);
     SCM new_shader_id = scm_from_pointer(shader_ptr, NULL);
     return new_shader_id;
 }
@@ -400,10 +428,10 @@ Color
 scm_to_color(SCM color_vec)
 {
     Color c;
-    c.r = scm_to_int( SCM_SIMPLE_VECTOR_REF(color_vec, 0) );
-    c.g = scm_to_int( SCM_SIMPLE_VECTOR_REF(color_vec, 1) );
-    c.b = scm_to_int( SCM_SIMPLE_VECTOR_REF(color_vec, 2) );
-    c.a = scm_to_int( SCM_SIMPLE_VECTOR_REF(color_vec, 3) );
+    c.r = (int)scm_to_double( SCM_SIMPLE_VECTOR_REF(color_vec, 0) );
+    c.g = (int)scm_to_double( SCM_SIMPLE_VECTOR_REF(color_vec, 1) );
+    c.b = (int)scm_to_double( SCM_SIMPLE_VECTOR_REF(color_vec, 2) );
+    c.a = (int)scm_to_double( SCM_SIMPLE_VECTOR_REF(color_vec, 3) );
     return c;
 }
 
@@ -579,6 +607,7 @@ text_size(SCM text, SCM font_scm, SCM font_size_scm, SCM spacing_scm)
 void base_init(void* data)
 {
     scm_c_define_gsubr("set-draw-target", 1, 0, 0, set_draw_target);
+    scm_c_define_gsubr("take-screenshot", 1, 0, 0, take_screenshot);
     scm_c_define_gsubr("draw-rect*", 9, 0, 0, draw_rect_scm);
     scm_c_define_gsubr("draw-triangle*", 6, 0, 0, draw_triangle_scm);
     scm_c_define_gsubr("draw-circle*", 10, 0, 0, draw_circle_scm);
@@ -589,6 +618,7 @@ void base_init(void* data)
     scm_c_define_gsubr("apply-transform", 1, 0, 0, apply_transform);
     scm_c_define_gsubr("invert-transform", 1, 0, 0, invert_transform);
     scm_c_define_gsubr("load-shader", 2, 0, 0, load_shader);
+    scm_c_define_gsubr("load-shader-text", 2, 0, 0, load_shader_text);
     scm_c_define_gsubr("load-font", 1, 0, 0, load_font);
     scm_c_define_gsubr("load-texture", 1, 0, 0, load_texture);
     scm_c_define_gsubr("create-render-texture", 2, 0, 0, create_render_texture);
